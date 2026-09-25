@@ -11,64 +11,85 @@
       --ios-card-inner: #2c2c2e;
       --ios-blue: #0a84ff;
       --ios-green: #30d158;
+      --ios-red: #ff453a;
+      --ios-orange: #ff9f0a;
       --ios-text: #ffffff;
       --ios-secondary: #8e8e93;
       --ios-border: rgba(255, 255, 255, 0.12);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-tap-highlight-color: transparent; }
     
-    body { background-color: var(--ios-bg); color: var(--ios-text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; }
+    body { background-color: var(--ios-bg); color: var(--ios-text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; position: relative; }
     
-    .ios-card { width: 100%; max-width: 420px; background: var(--ios-card); border-radius: 24px; padding: 24px; backdrop-filter: blur(20px); border: 1px solid var(--ios-border); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+    .ios-card { width: 100%; max-width: 420px; background: var(--ios-card); border-radius: 24px; padding: 24px; border: 1px solid var(--ios-border); box-shadow: 0 20px 40px rgba(0,0,0,0.6); position: relative; }
 
-    .header { text-align: center; margin-bottom: 24px; }
+    .nav-top-left { position: absolute; top: 20px; left: 20px; z-index: 10; display: none; }
+    .nav-btn { background: var(--ios-card-inner); border: 1px solid var(--ios-border); color: var(--ios-text); width: 38px; height: 38px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1.2rem; }
+
+    .nav-menu { display: none; position: absolute; top: 46px; left: 0; background: var(--ios-card-inner); border: 1px solid var(--ios-border); border-radius: 14px; width: 200px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); overflow: hidden; z-index: 100; }
+    .nav-menu.show { display: block; }
+    .nav-item { padding: 12px 16px; font-size: 0.9rem; color: var(--ios-text); border-bottom: 1px solid var(--ios-border); cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .nav-item:last-child { border-bottom: none; }
+
+    .header { text-align: center; margin-bottom: 24px; margin-top: 10px; }
     .header img { width: 64px; height: 64px; border-radius: 16px; margin-bottom: 12px; }
-    .header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; }
+    .header h1 { font-size: 1.4rem; font-weight: 700; }
     .header p { font-size: 0.85rem; color: var(--ios-secondary); margin-top: 4px; }
 
     .group { background: var(--ios-card-inner); border-radius: 16px; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--ios-border); }
     .row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--ios-border); }
     .row:last-child { border-bottom: none; }
-    .row label { font-size: 0.95rem; font-weight: 400; color: var(--ios-text); }
+    .row label { font-size: 0.95rem; color: var(--ios-text); }
 
     select, input[type="text"] { background: transparent; border: none; color: var(--ios-blue); font-size: 0.95rem; text-align: right; outline: none; width: 60%; }
-    input[type="text"]::placeholder { color: var(--ios-secondary); }
 
-    .ios-btn { width: 100%; background: var(--ios-blue); color: #fff; font-size: 1rem; font-weight: 600; padding: 14px; border-radius: 14px; border: none; cursor: pointer; transition: all 0.2s ease; }
+    .ios-btn { width: 100%; background: var(--ios-blue); color: #fff; font-size: 1rem; font-weight: 600; padding: 14px; border-radius: 14px; border: none; cursor: pointer; transition: all 0.2s ease; margin-bottom: 8px; }
     .ios-btn:active { opacity: 0.7; transform: scale(0.98); }
+
+    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .btn-start { background: var(--ios-green); }
+    .btn-stop { background: var(--ios-orange); }
+    .btn-restart { background: var(--ios-blue); }
+    .btn-logout { background: var(--ios-red); }
 
     .hidden { display: none !important; }
 
-    /* iOS Spinner Loading */
     .spinner-box { text-align: center; padding: 20px 0; }
     .ios-spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.15); border-radius: 50%; border-top-color: var(--ios-blue); animation: spin 0.8s ease-in-out infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Display Code / QR */
     .code-box { font-size: 2rem; font-weight: 700; text-align: center; letter-spacing: 6px; color: var(--ios-green); padding: 16px; background: var(--ios-card-inner); border-radius: 16px; margin-top: 16px; border: 1px solid var(--ios-border); }
     .qr-box { text-align: center; margin-top: 16px; }
-    .qr-box img { width: 220px; height: 220px; border-radius: 20px; border: 4px solid var(--ios-card-inner); }
+    .qr-box img { width: 200px; height: 200px; border-radius: 20px; border: 4px solid var(--ios-card-inner); }
 
-    /* Dropdown File Session iOS Style */
-    .dropdown-btn { background: var(--ios-card-inner); color: var(--ios-text); font-size: 0.95rem; font-weight: 500; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--ios-border); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-    .dropdown-content { display: none; background: var(--ios-card-inner); border-radius: 16px; margin-top: 8px; padding: 12px; max-height: 180px; overflow-y: auto; border: 1px solid var(--ios-border); }
-    .dropdown-content.show { display: block; }
-    .file-item { padding: 8px 4px; border-bottom: 1px solid var(--ios-border); font-size: 0.85rem; color: var(--ios-secondary); display: flex; align-items: center; gap: 8px; }
-    .file-item:last-child { border-bottom: none; }
+    .content-box { display: none; }
+    .content-box.active { display: block; }
+
+    .file-item { padding: 10px; border-bottom: 1px solid var(--ios-border); font-size: 0.85rem; color: var(--ios-secondary); }
+
+    .terminal-box { background: #000; border: 1px solid var(--ios-border); border-radius: 12px; padding: 12px; font-family: monospace; font-size: 0.75rem; color: #4ade80; height: 200px; overflow-y: auto; text-align: left; }
   </style>
 </head>
 <body>
 
 <div class="ios-card">
+  <div class="nav-top-left" id="navTopLeft">
+    <div class="nav-btn" onclick="toggleNavMenu()">⋮</div>
+    <div class="nav-menu" id="navMenu">
+      <div class="nav-item" onclick="switchView('session')">📁 File Session</div>
+      <div class="nav-item" onclick="switchView('control')">💻 Command Panel/Termux</div>
+    </div>
+  </div>
+
   <div class="header">
     <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA Logo">
     <h1>XCY WhatsApp Bot</h1>
-    <p>Sistem Tautan Perangkat iOS</p>
+    <p>Multi-Session WhatsApp Platform</p>
   </div>
 
-  <!-- PAIRING / QR FORM -->
-  <div id="pairSection">
+  <!-- VIEW 1: PAIRING SECTION -->
+  <div id="pairSection" class="content-box active">
     <div class="group">
       <div class="row">
         <label>Metode Koneksi</label>
@@ -78,61 +99,80 @@
         </select>
       </div>
       <div class="row" id="phoneInputGroup">
-        <label>Nomor HP</label>
+        <label>Nomor HP Anda</label>
         <input type="text" id="phoneInput" placeholder="628xxx">
       </div>
     </div>
 
     <button id="startBtn" class="ios-btn" onclick="startConnection()">Mulai Tautan</button>
 
-    <!-- LOADING REALTIME -->
     <div id="loadingBox" class="spinner-box hidden">
       <div class="ios-spinner"></div>
       <p style="font-size: 0.85rem; color: var(--ios-secondary); margin-top: 10px;">Menghubungkan ke Server...</p>
     </div>
 
-    <!-- CODE DISPLAY -->
     <div id="codeDisplay" class="hidden">
       <p style="font-size: 0.85rem; color: var(--ios-secondary); text-align: center;">Kode Pairing WhatsApp Anda:</p>
       <div id="pairCode" class="code-box">------</div>
     </div>
 
-    <!-- QR DISPLAY -->
     <div id="qrDisplay" class="qr-box hidden">
-      <p style="font-size: 0.85rem; color: var(--ios-secondary); margin-bottom: 10px;">Pindai QR ini melalui kamera WhatsApp:</p>
+      <p style="font-size: 0.85rem; color: var(--ios-secondary); margin-bottom: 10px;">Pindai QR Code ini:</p>
       <img id="qrImage" src="" alt="QR Code">
     </div>
   </div>
 
-  <!-- DASHBOARD TERTAUT -->
-  <div id="dashboardSection" class="hidden">
+  <!-- VIEW 2: DASHBOARD TERCONNECT -->
+  <div id="dashboardSection" class="content-box">
     <div class="group">
       <div class="row">
         <label>Status Server</label>
-        <span style="color: var(--ios-green); font-weight: 600; font-size: 0.95rem;">● Connected</span>
+        <span id="statusBadge" style="color: var(--ios-green); font-weight: 600; font-size: 0.95rem;">● Connected</span>
       </div>
       <div class="row">
-        <label>Nomor HP</label>
+        <label>Nomor Tertaut</label>
         <span id="connectedNum" style="color: var(--ios-secondary); font-size: 0.95rem;">-</span>
       </div>
     </div>
-
-    <div class="dropdown-btn" onclick="toggleMenu()">
-      <span>Session File System</span>
-      <span style="color: var(--ios-secondary);">⋮</span>
-    </div>
-    
-    <div id="menuContent" class="dropdown-content">
-      <div id="fileList">Memuat file...</div>
-    </div>
   </div>
+
+  <!-- VIEW 3: FILE SESSION -->
+  <div id="sessionSection" class="content-box">
+    <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--ios-blue);">📁 Session Files Anda</h3>
+    <div class="group" style="max-height: 200px; overflow-y: auto;">
+      <div id="fileList"><p class="file-item">Memuat file...</p></div>
+    </div>
+    <button class="ios-btn" onclick="switchView('dashboard')">Kembali ke Dashboard</button>
+  </div>
+
+  <!-- VIEW 4: COMMAND PANEL -->
+  <div id="controlSection" class="content-box">
+    <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--ios-blue);">💻 Command Panel Sesi Anda</h3>
+    
+    <div class="btn-grid">
+      <button class="ios-btn btn-start" onclick="sendControl('start')">▶ Start</button>
+      <button class="ios-btn btn-stop" onclick="sendControl('stop')">⏹ Stop</button>
+      <button class="ios-btn btn-restart" onclick="sendControl('restart')">🔄 Restart</button>
+      <button class="ios-btn btn-logout" onclick="sendControl('logout')">🚪 Log Out</button>
+    </div>
+
+    <p style="font-size: 0.8rem; color: var(--ios-secondary); margin-bottom: 6px;">Output Log Sesi Real-Time:</p>
+    <div class="terminal-box" id="terminalOutput">
+      <div>[SYSTEM] Terminal tersambung...</div>
+    </div>
+    <br>
+    <button class="ios-btn" onclick="switchView('dashboard')">Kembali ke Dashboard</button>
+  </div>
+
 </div>
 
 <script>
-  // URL Cloudflare Tunnel aktif dari Termux
+  // MASUKKAN URL CLOUDFLARE TUNNEL TERBARU DARI TERMUX
   const BACKEND_URL = "https://accessories-chorus-shipments-edinburgh.trycloudflare.com";
 
   let ws = null;
+  let currentView = 'pair';
+  let myPhone = localStorage.getItem('userPhone') || '';
 
   function initWebSocket() {
     if (!BACKEND_URL) return;
@@ -142,6 +182,17 @@
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+
+      // Jika ada respon pairing code / status terkait nomor pengguna ini
+      if (data.phone) {
+        if (!myPhone) {
+          myPhone = data.phone;
+          localStorage.setItem('userPhone', myPhone);
+        }
+      }
+
+      if (myPhone && data.phone && data.phone !== myPhone) return;
+
       if (data.type === 'pairing_code') {
         hideLoading();
         document.getElementById('codeDisplay').classList.remove('hidden');
@@ -151,9 +202,47 @@
         document.getElementById('qrDisplay').classList.remove('hidden');
         document.getElementById('qrImage').src = data.qr;
       } else if (data.type === 'status') {
-        checkStatus();
+        if (data.connected && data.phone === myPhone) {
+          document.getElementById('connectedNum').innerText = `+${myPhone}`;
+          document.getElementById('navTopLeft').style.display = 'block';
+          switchView('dashboard');
+        } else if (!data.connected && data.phone === myPhone) {
+          document.getElementById('navTopLeft').style.display = 'none';
+          switchView('pair');
+        }
+      } else if (data.type === 'terminal_log') {
+        appendTerminalLog(data.log);
       }
     };
+  }
+
+  function appendTerminalLog(logText) {
+    const term = document.getElementById('terminalOutput');
+    const line = document.createElement('div');
+    line.innerText = logText;
+    term.appendChild(line);
+    term.scrollTop = term.scrollHeight;
+  }
+
+  function toggleNavMenu() {
+    document.getElementById('navMenu').classList.toggle('show');
+  }
+
+  function switchView(viewName) {
+    currentView = viewName;
+    document.getElementById('navMenu').classList.remove('show');
+    document.querySelectorAll('.content-box').forEach(el => el.classList.remove('active'));
+
+    if (viewName === 'session') {
+      document.getElementById('sessionSection').classList.add('active');
+      loadSessionFiles();
+    } else if (viewName === 'control') {
+      document.getElementById('controlSection').classList.add('active');
+    } else if (viewName === 'dashboard') {
+      document.getElementById('dashboardSection').classList.add('active');
+    } else if (viewName === 'pair') {
+      document.getElementById('pairSection').classList.add('active');
+    }
   }
 
   function toggleModeInput() {
@@ -168,9 +257,13 @@
 
   async function startConnection() {
     const mode = document.getElementById('modeSelect').value;
-    const phone = document.getElementById('phoneInput').value;
+    const phone = document.getElementById('phoneInput').value.replace(/[^0-9]/g, "");
 
-    if (mode === 'pairing' && !phone) return alert('Silakan masukkan nomor WhatsApp!');
+    if (!phone) return alert('Silakan masukkan nomor WhatsApp Anda!');
+
+    // SIMPAN LANGSUNG NOMOR NOMOR DI MEMORI HP TERLEBIH DAHULU
+    myPhone = phone;
+    localStorage.setItem('userPhone', myPhone);
 
     showLoading();
 
@@ -178,9 +271,8 @@
       const res = await fetch(`${BACKEND_URL}/api/connect`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode, phone })
+        body: JSON.stringify({ mode, phone: myPhone })
       });
-      
       const result = await res.json();
       if (result.error) {
         hideLoading();
@@ -188,7 +280,30 @@
       }
     } catch (err) {
       hideLoading();
-      alert('Gagal terhubung ke Server Termux!');
+      alert('Gagal terhubung ke Server!');
+    }
+  }
+
+  async function sendControl(action) {
+    if (!myPhone) return;
+    try {
+      appendTerminalLog(`[CLIENT] Mengirim perintah: ${action.toUpperCase()}...`);
+      const res = await fetch(`${BACKEND_URL}/api/control`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, phone: myPhone })
+      });
+      const data = await res.json();
+      if (data.message) {
+        appendTerminalLog(`[SERVER] ${data.message}`);
+      }
+      if (action === 'logout') {
+        localStorage.removeItem('userPhone');
+        myPhone = '';
+        switchView('pair');
+      }
+    } catch (err) {
+      appendTerminalLog(`[ERROR] ${err.message}`);
     }
   }
 
@@ -205,36 +320,43 @@
   }
 
   async function checkStatus() {
+    if (!myPhone) {
+      switchView('pair');
+      document.getElementById('navTopLeft').style.display = 'none';
+      return;
+    }
+
     try {
-      const res = await fetch(`${BACKEND_URL}/api/status`);
+      const res = await fetch(`${BACKEND_URL}/api/status?phone=${myPhone}`);
       const data = await res.json();
 
       if (data.connected) {
-        document.getElementById('pairSection').classList.add('hidden');
-        document.getElementById('dashboardSection').classList.remove('hidden');
-        document.getElementById('connectedNum').innerText = `+${data.number}`;
-        loadSessionFiles();
+        document.getElementById('connectedNum').innerText = `+${myPhone}`;
+        document.getElementById('navTopLeft').style.display = 'block';
+
+        if (currentView === 'pair') {
+          switchView('dashboard');
+        }
       } else {
-        document.getElementById('pairSection').classList.remove('hidden');
-        document.getElementById('dashboardSection').classList.add('hidden');
+        document.getElementById('navTopLeft').style.display = 'none';
+        if (currentView !== 'pair') {
+          switchView('pair');
+        }
       }
     } catch (err) {
       console.error(err);
     }
   }
 
-  function toggleMenu() {
-    document.getElementById('menuContent').classList.toggle('show');
-  }
-
   async function loadSessionFiles() {
+    if (!myPhone) return;
     try {
-      const res = await fetch(`${BACKEND_URL}/api/session-files`);
+      const res = await fetch(`${BACKEND_URL}/api/session-files?phone=${myPhone}`);
       const data = await res.json();
       const listEl = document.getElementById('fileList');
       listEl.innerHTML = '';
 
-      if (data.files.length === 0) {
+      if (!data.files || data.files.length === 0) {
         listEl.innerHTML = '<div class="file-item">Tidak ada file session.</div>';
         return;
       }
@@ -242,7 +364,7 @@
       data.files.forEach(file => {
         const item = document.createElement('div');
         item.className = 'file-item';
-        item.innerHTML = `📄 <span>${file}</span>`;
+        item.innerText = `📄 ${file}`;
         listEl.appendChild(item);
       });
     } catch (err) {
