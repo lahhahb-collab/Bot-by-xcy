@@ -84,15 +84,18 @@
 <body>
 
 <div class="ios-card">
+  <!-- BADGE ONLINE DI KANAN ATAS -->
   <div class="online-badge hidden" id="onlineBadge">
     <div class="online-dot"></div> ONLINE
   </div>
 
+  <!-- NAVIGASI KIRI ATAS (HANYA MUNCUL KETIKA SUDAH TERHUBUNG) -->
   <div class="nav-top-left" id="navTopLeft">
     <div class="nav-btn" onclick="toggleNavMenu()">⋮</div>
     <div class="nav-menu" id="navMenu">
+      <div class="nav-item" onclick="switchView('dashboard')">📊 Dashboard Status</div>
       <div class="nav-item" onclick="switchView('session')">📁 File Session</div>
-      <div class="nav-item" onclick="switchView('control')">💻 Command Panel/Termux</div>
+      <div class="nav-item" onclick="switchView('control')">💻 Command Panel</div>
     </div>
   </div>
 
@@ -102,6 +105,7 @@
     <p>Multi-Session WhatsApp Platform</p>
   </div>
 
+  <!-- HALAMAN 1: SERVER OFFLINE -->
   <div id="offlineSection" class="content-box active">
     <div class="offline-box">
       <span class="offline-icon">⚠️</span>
@@ -110,6 +114,7 @@
     </div>
   </div>
 
+  <!-- HALAMAN 2: PAIRING CODE / QR CODE -->
   <div id="pairSection" class="content-box">
     <div class="group">
       <div class="row">
@@ -143,19 +148,24 @@
     </div>
   </div>
 
+  <!-- HALAMAN 3: DASHBOARD KHUSUS (MUNCUL OTOMATIS SETELAH TERHUBUNG) -->
   <div id="dashboardSection" class="content-box">
     <div class="group">
       <div class="row">
-        <label>Status Server</label>
-        <span id="statusBadge" style="color: var(--ios-green); font-weight: 600; font-size: 0.95rem;">● Connected</span>
+        <label>Status WhatsApp</label>
+        <span id="statusBadge" style="color: var(--ios-green); font-weight: 600; font-size: 0.95rem;">● Terhubung</span>
       </div>
       <div class="row">
         <label>Nomor Tertaut</label>
-        <span id="connectedNum" style="color: var(--ios-secondary); font-size: 0.95rem;">-</span>
+        <span id="connectedNum" style="color: var(--ios-blue); font-weight: 600; font-size: 0.95rem;">-</span>
       </div>
     </div>
+    <p style="font-size: 0.8rem; color: var(--ios-secondary); text-align: center; margin-top: 10px;">
+      Gunakan tombol menu (⋮) di pojok kiri atas untuk melihat File Session atau Mengontrol Bot.
+    </p>
   </div>
 
+  <!-- HALAMAN 4: FILE SESSION -->
   <div id="sessionSection" class="content-box">
     <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--ios-blue);">📁 Session Files Anda</h3>
     <div class="group" style="max-height: 200px; overflow-y: auto;">
@@ -164,6 +174,7 @@
     <button class="ios-btn" onclick="switchView('dashboard')">Kembali ke Dashboard</button>
   </div>
 
+  <!-- HALAMAN 5: COMMAND PANEL -->
   <div id="controlSection" class="content-box">
     <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--ios-blue);">💻 Command Panel Sesi Anda</h3>
     
@@ -185,8 +196,8 @@
 </div>
 
 <script>
-  // DOMAIN STATIS NGROK ANDA
-  const BACKEND_URL = "https://stipend-thesis-employed.ngrok-free.dev";
+  // TEMPELKAN URL CLOUDFLARE DARI TERMUX ANDA DI SINI
+  const BACKEND_URL = "https://PASTE-URL-TRYCLOUDFLARE-DARI-TERMUX.trycloudflare.com";
 
   let ws = null;
   let currentView = 'offline';
@@ -194,7 +205,7 @@
   let isServerOnline = false;
 
   function initWebSocket() {
-    if (!BACKEND_URL) return;
+    if (!BACKEND_URL || BACKEND_URL.includes("PASTE-URL")) return;
     const wsUrl = BACKEND_URL.replace(/^http/, 'ws');
     
     try {
@@ -228,6 +239,7 @@
           if (data.connected && data.phone === myPhone) {
             document.getElementById('connectedNum').innerText = `+${myPhone}`;
             document.getElementById('navTopLeft').style.display = 'block';
+            // PINDAH OTOMATIS KE DASHBOARD SAAT STATUS TERHUBUNG
             switchView('dashboard');
           } else if (!data.connected && data.phone === myPhone) {
             document.getElementById('navTopLeft').style.display = 'none';
@@ -381,10 +393,8 @@
       if (data.connected) {
         document.getElementById('connectedNum').innerText = `+${myPhone}`;
         document.getElementById('navTopLeft').style.display = 'block';
-
-        if (currentView === 'pair' || currentView === 'offline') {
-          switchView('dashboard');
-        }
+        // PERPINDAHAN HALAMAN OTOMATIS KE DASHBOARD
+        switchView('dashboard');
       } else {
         document.getElementById('navTopLeft').style.display = 'none';
         if (currentView !== 'pair') {
