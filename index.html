@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XCY WhatsApp Bot Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #0f172a; color: #f8fafc; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .container { width: 100%; max-width: 500px; background: #1e293b; border-radius: 12px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); }
+    h1 { font-size: 1.5rem; text-align: center; margin-bottom: 20px; color: #38bdf8; }
+    .card { background: #334155; padding: 16px; border-radius: 8px; margin-bottom: 16px; }
+    label { font-size: 0.85rem; color: #94a3b8; display: block; margin-bottom: 6px; }
+    input[type="text"], select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; margin-bottom: 12px; }
+    button { width: 100%; padding: 12px; border-radius: 6px; border: none; background: #0284c7; color: #fff; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    button:hover { background: #0369a1; }
+    .hidden { display: none; }
+    
+    /* Animasi Loading Real-Time */
+    .spinner-container { text-align: center; padding: 20px 0; }
+    .spinner { border: 4px solid rgba(255, 255, 255, 0.1); width: 40px; height: 40px; border-radius: 50%; border-left-color: #38bdf8; animation: spin 1s linear infinite; margin: 0 auto 12px auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .code-box { font-size: 1.8rem; font-weight: bold; text-align: center; letter-spacing: 4px; color: #4ade80; padding: 12px; background: #0f172a; border-radius: 6px; margin-top: 10px; }
+    .qr-box { text-align: center; margin-top: 10px; }
+    .qr-box img { width: 200px; height: 200px; border-radius: 8px; border: 4px solid #0f172a; }
+
+    .dropdown { position: relative; width: 100%; }
+    .dropdown-btn { background: #475569; margin-bottom: 8px; text-align: left; display: flex; justify-content: space-between; align-items: center; }
+    .dropdown-content { display: none; background: #0f172a; padding: 10px; border-radius: 6px; max-height: 200px; overflow-y: auto; }
+    .dropdown-content.show { display: block; }
+    .file-item { padding: 6px 0; border-bottom: 1px solid #1e293b; font-size: 0.9rem; color: #cbd5e1; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>XCY WhatsApp Bot</h1>
+
+  <!-- FORM TAUTKAN -->
+  <div id="pairSection" class="card">
+    <h3>Tautkan Perangkat</h3>
+    
+    <label style="margin-top: 12px;">Pilih Mode Koneksi:</label>
+    <select id="modeSelect" onchange="toggleModeInput()">
+      <option value="pairing">Pairing Code</option>
+      <option value="qr">QR Code</option>
+    </select>
+
+    <div id="phoneInputGroup">
+      <label>Nomor WhatsApp (Contoh: 628xxx):</label>
+      <input type="text" id="phoneInput" placeholder="628123456789">
+    </div>
+
+    <button id="startBtn" onclick="startConnection()">Start</button>
+
+    <!-- LOADING REAL-TIME -->
+    <div id="loadingBox" class="spinner-container hidden">
+      <div class="spinner"></div>
+      <p style="font-size: 0.9rem; color: #38bdf8;">Menghubungkan ke Server...</p>
+    </div>
+
+    <!-- HASIL PAIRING CODE -->
+    <div id="codeDisplay" class="hidden">
+      <p style="margin-top: 10px; font-size: 0.9rem; text-align: center;">Kode Pairing Anda:</p>
+      <div id="pairCode" class="code-box">------</div>
+    </div>
+
+    <!-- HASIL QR CODE -->
+    <div id="qrDisplay" class="qr-box hidden">
+      <p style="font-size: 0.9rem; margin-bottom: 8px;">Pindai QR Code di WhatsApp:</p>
+      <img id="qrImage" src="" alt="QR Code">
+    </div>
+  </div>
+
+  <!-- DASHBOARD SETELAH TERHUBUNG -->
+  <div id="dashboardSection" class="card hidden">
+    <h3>Status: <span style="color: #4ade80;">Tertaut</span></h3>
+    <p id="connectedNum" style="margin-top: 8px; font-size: 0.95rem;"></p>
+    
+    <div style="margin-top: 20px;">
+      <div class="dropdown">
+        <button class="dropdown-btn" onclick="toggleMenu()">
+          <span>File System (Session)</span>
+          <span>⋮</span>
+        </button>
+        <div id="menuContent" class="dropdown-content">
+          <p style="font-weight: bold; color: #38bdf8; margin-bottom: 8px;">Folder Session:</p>
+          <div id="fileList">Memuat file...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // MASUKKAN URL/IP SERVER TERMUX / PANEL ANDA DI SINI
+  // Contoh jika pakai domain/IP: 'https://server-bot-anda.com' atau 'http://123.456.78.90:3000'
+  const BACKEND_URL = "https://domain-atau-ip-server-anda.com"; 
+
+  let ws = null;
+
+  function initWebSocket() {
+    if (!BACKEND_URL) return;
+    const wsUrl = BACKEND_URL.replace(/^http/, 'ws');
+    
+    ws = new WebSocket(wsUrl);
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      
+      if (data.type === 'pairing_code') {
+        hideLoading();
+        document.getElementById('codeDisplay').classList.remove('hidden');
+        document.getElementById('pairCode').innerText = data.code;
+      } else if (data.type === 'qr_code') {
+        hideLoading();
+        document.getElementById('qrDisplay').classList.remove('hidden');
+        document.getElementById('qrImage').src = data.qr;
+      } else if (data.type === 'status') {
+        checkStatus();
+      }
+    };
+
+    ws.onerror = () => {
+      console.error("Gagal menghubungkan WebSocket ke backend server.");
+    };
+  }
+
+  function toggleModeInput() {
+    const mode = document.getElementById('modeSelect').value;
+    const phoneGroup = document.getElementById('phoneInputGroup');
+    if (mode === 'qr') {
+      phoneGroup.classList.add('hidden');
+    } else {
+      phoneGroup.classList.remove('hidden');
+    }
+  }
+
+  async function startConnection() {
+    const mode = document.getElementById('modeSelect').value;
+    const phone = document.getElementById('phoneInput').value;
+
+    if (mode === 'pairing' && !phone) return alert('Masukkan nomor WhatsApp!');
+
+    showLoading();
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/connect`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode, phone })
+      });
+      
+      const result = await res.json();
+      if (result.error) {
+        hideLoading();
+        alert(result.error);
+      }
+    } catch (err) {
+      hideLoading();
+      alert('Gagal terhubung ke Backend Server Termux/Panel!');
+    }
+  }
+
+  function showLoading() {
+    document.getElementById('startBtn').classList.add('hidden');
+    document.getElementById('loadingBox').classList.remove('hidden');
+    document.getElementById('codeDisplay').classList.add('hidden');
+    document.getElementById('qrDisplay').classList.add('hidden');
+  }
+
+  function hideLoading() {
+    document.getElementById('loadingBox').classList.add('hidden');
+    document.getElementById('startBtn').classList.remove('hidden');
+  }
+
+  async function checkStatus() {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/status`);
+      const data = await res.json();
+
+      if (data.connected) {
+        document.getElementById('pairSection').classList.add('hidden');
+        document.getElementById('dashboardSection').classList.remove('hidden');
+        document.getElementById('connectedNum').innerText = `Nomor HP: +${data.number}`;
+        loadSessionFiles();
+      } else {
+        document.getElementById('pairSection').classList.remove('hidden');
+        document.getElementById('dashboardSection').classList.add('hidden');
+      }
+    } catch (err) {
+      console.error("Error checking status:", err);
+    }
+  }
+
+  function toggleMenu() {
+    document.getElementById('menuContent').classList.toggle('show');
+  }
+
+  async function loadSessionFiles() {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/session-files`);
+      const data = await res.json();
+      const listEl = document.getElementById('fileList');
+      listEl.innerHTML = '';
+
+      if (data.files.length === 0) {
+        listEl.innerHTML = '<p class="file-item">Tidak ada file session.</p>';
+        return;
+      }
+
+      data.files.forEach(file => {
+        const item = document.createElement('div');
+        item.className = 'file-item';
+        item.innerText = `📄 ${file}`;
+        listEl.appendChild(item);
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // Inisialisasi saat web dibuka
+  initWebSocket();
+  checkStatus();
+</script>
+
+</body>
+</html>
