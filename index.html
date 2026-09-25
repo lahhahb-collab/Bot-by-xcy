@@ -2,101 +2,135 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>XCY WhatsApp Bot Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>XCY WhatsApp Bot</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background: #0f172a; color: #f8fafc; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-    .container { width: 100%; max-width: 500px; background: #1e293b; border-radius: 12px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); }
-    h1 { font-size: 1.5rem; text-align: center; margin-bottom: 20px; color: #38bdf8; }
-    .card { background: #334155; padding: 16px; border-radius: 8px; margin-bottom: 16px; }
-    label { font-size: 0.85rem; color: #94a3b8; display: block; margin-bottom: 6px; }
-    input[type="text"], select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; margin-bottom: 12px; }
-    button { width: 100%; padding: 12px; border-radius: 6px; border: none; background: #0284c7; color: #fff; font-weight: bold; cursor: pointer; transition: 0.2s; }
-    button:hover { background: #0369a1; }
-    .hidden { display: none; }
+    :root {
+      --ios-bg: #000000;
+      --ios-card: #1c1c1e;
+      --ios-card-inner: #2c2c2e;
+      --ios-blue: #0a84ff;
+      --ios-green: #30d158;
+      --ios-text: #ffffff;
+      --ios-secondary: #8e8e93;
+      --ios-border: rgba(255, 255, 255, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
     
-    /* Animasi Loading Real-Time */
-    .spinner-container { text-align: center; padding: 20px 0; }
-    .spinner { border: 4px solid rgba(255, 255, 255, 0.1); width: 40px; height: 40px; border-radius: 50%; border-left-color: #38bdf8; animation: spin 1s linear infinite; margin: 0 auto 12px auto; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    body { background-color: var(--ios-bg); color: var(--ios-text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; }
+    
+    .ios-card { width: 100%; max-width: 420px; background: var(--ios-card); border-radius: 24px; padding: 24px; backdrop-filter: blur(20px); border: 1px solid var(--ios-border); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
 
-    .code-box { font-size: 1.8rem; font-weight: bold; text-align: center; letter-spacing: 4px; color: #4ade80; padding: 12px; background: #0f172a; border-radius: 6px; margin-top: 10px; }
-    .qr-box { text-align: center; margin-top: 10px; }
-    .qr-box img { width: 200px; height: 200px; border-radius: 8px; border: 4px solid #0f172a; }
+    .header { text-align: center; margin-bottom: 24px; }
+    .header img { width: 64px; height: 64px; border-radius: 16px; margin-bottom: 12px; }
+    .header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; }
+    .header p { font-size: 0.85rem; color: var(--ios-secondary); margin-top: 4px; }
 
-    .dropdown { position: relative; width: 100%; }
-    .dropdown-btn { background: #475569; margin-bottom: 8px; text-align: left; display: flex; justify-content: space-between; align-items: center; }
-    .dropdown-content { display: none; background: #0f172a; padding: 10px; border-radius: 6px; max-height: 200px; overflow-y: auto; }
+    .group { background: var(--ios-card-inner); border-radius: 16px; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--ios-border); }
+    .row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--ios-border); }
+    .row:last-child { border-bottom: none; }
+    .row label { font-size: 0.95rem; font-weight: 400; color: var(--ios-text); }
+
+    select, input[type="text"] { background: transparent; border: none; color: var(--ios-blue); font-size: 0.95rem; text-align: right; outline: none; width: 60%; }
+    input[type="text"]::placeholder { color: var(--ios-secondary); }
+
+    .ios-btn { width: 100%; background: var(--ios-blue); color: #fff; font-size: 1rem; font-weight: 600; padding: 14px; border-radius: 14px; border: none; cursor: pointer; transition: all 0.2s ease; }
+    .ios-btn:active { opacity: 0.7; transform: scale(0.98); }
+
+    .hidden { display: none !important; }
+
+    /* iOS Spinner Loading */
+    .spinner-box { text-align: center; padding: 20px 0; }
+    .ios-spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.15); border-radius: 50%; border-top-color: var(--ios-blue); animation: spin 0.8s ease-in-out infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Display Code / QR */
+    .code-box { font-size: 2rem; font-weight: 700; text-align: center; letter-spacing: 6px; color: var(--ios-green); padding: 16px; background: var(--ios-card-inner); border-radius: 16px; margin-top: 16px; border: 1px solid var(--ios-border); }
+    .qr-box { text-align: center; margin-top: 16px; }
+    .qr-box img { width: 220px; height: 220px; border-radius: 20px; border: 4px solid var(--ios-card-inner); }
+
+    /* Dropdown File Session iOS Style */
+    .dropdown-btn { background: var(--ios-card-inner); color: var(--ios-text); font-size: 0.95rem; font-weight: 500; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--ios-border); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .dropdown-content { display: none; background: var(--ios-card-inner); border-radius: 16px; margin-top: 8px; padding: 12px; max-height: 180px; overflow-y: auto; border: 1px solid var(--ios-border); }
     .dropdown-content.show { display: block; }
-    .file-item { padding: 6px 0; border-bottom: 1px solid #1e293b; font-size: 0.9rem; color: #cbd5e1; }
+    .file-item { padding: 8px 4px; border-bottom: 1px solid var(--ios-border); font-size: 0.85rem; color: var(--ios-secondary); display: flex; align-items: center; gap: 8px; }
+    .file-item:last-child { border-bottom: none; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>XCY WhatsApp Bot</h1>
+<div class="ios-card">
+  <div class="header">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA Logo">
+    <h1>XCY WhatsApp Bot</h1>
+    <p>Sistem Tautan Perangkat iOS</p>
+  </div>
 
-  <!-- FORM TAUTKAN -->
-  <div id="pairSection" class="card">
-    <h3>Tautkan Perangkat</h3>
-    
-    <label style="margin-top: 12px;">Pilih Mode Koneksi:</label>
-    <select id="modeSelect" onchange="toggleModeInput()">
-      <option value="pairing">Pairing Code</option>
-      <option value="qr">QR Code</option>
-    </select>
-
-    <div id="phoneInputGroup">
-      <label>Nomor WhatsApp (Contoh: 628xxx):</label>
-      <input type="text" id="phoneInput" placeholder="628123456789">
+  <!-- PAIRING / QR FORM -->
+  <div id="pairSection">
+    <div class="group">
+      <div class="row">
+        <label>Metode Koneksi</label>
+        <select id="modeSelect" onchange="toggleModeInput()">
+          <option value="pairing">Pairing Code</option>
+          <option value="qr">QR Code</option>
+        </select>
+      </div>
+      <div class="row" id="phoneInputGroup">
+        <label>Nomor HP</label>
+        <input type="text" id="phoneInput" placeholder="628xxx">
+      </div>
     </div>
 
-    <button id="startBtn" onclick="startConnection()">Start</button>
+    <button id="startBtn" class="ios-btn" onclick="startConnection()">Mulai Tautan</button>
 
-    <!-- LOADING REAL-TIME -->
-    <div id="loadingBox" class="spinner-container hidden">
-      <div class="spinner"></div>
-      <p style="font-size: 0.9rem; color: #38bdf8;">Menghubungkan ke Server...</p>
+    <!-- LOADING REALTIME -->
+    <div id="loadingBox" class="spinner-box hidden">
+      <div class="ios-spinner"></div>
+      <p style="font-size: 0.85rem; color: var(--ios-secondary); margin-top: 10px;">Menghubungkan ke Server...</p>
     </div>
 
-    <!-- HASIL PAIRING CODE -->
+    <!-- CODE DISPLAY -->
     <div id="codeDisplay" class="hidden">
-      <p style="margin-top: 10px; font-size: 0.9rem; text-align: center;">Kode Pairing Anda:</p>
+      <p style="font-size: 0.85rem; color: var(--ios-secondary); text-align: center;">Kode Pairing WhatsApp Anda:</p>
       <div id="pairCode" class="code-box">------</div>
     </div>
 
-    <!-- HASIL QR CODE -->
+    <!-- QR DISPLAY -->
     <div id="qrDisplay" class="qr-box hidden">
-      <p style="font-size: 0.9rem; margin-bottom: 8px;">Pindai QR Code di WhatsApp:</p>
+      <p style="font-size: 0.85rem; color: var(--ios-secondary); margin-bottom: 10px;">Pindai QR ini melalui kamera WhatsApp:</p>
       <img id="qrImage" src="" alt="QR Code">
     </div>
   </div>
 
-  <!-- DASHBOARD SETELAH TERHUBUNG -->
-  <div id="dashboardSection" class="card hidden">
-    <h3>Status: <span style="color: #4ade80;">Tertaut</span></h3>
-    <p id="connectedNum" style="margin-top: 8px; font-size: 0.95rem;"></p>
-    
-    <div style="margin-top: 20px;">
-      <div class="dropdown">
-        <button class="dropdown-btn" onclick="toggleMenu()">
-          <span>File System (Session)</span>
-          <span>⋮</span>
-        </button>
-        <div id="menuContent" class="dropdown-content">
-          <p style="font-weight: bold; color: #38bdf8; margin-bottom: 8px;">Folder Session:</p>
-          <div id="fileList">Memuat file...</div>
-        </div>
+  <!-- DASHBOARD TERTAUT -->
+  <div id="dashboardSection" class="hidden">
+    <div class="group">
+      <div class="row">
+        <label>Status Server</label>
+        <span style="color: var(--ios-green); font-weight: 600; font-size: 0.95rem;">● Connected</span>
       </div>
+      <div class="row">
+        <label>Nomor HP</label>
+        <span id="connectedNum" style="color: var(--ios-secondary); font-size: 0.95rem;">-</span>
+      </div>
+    </div>
+
+    <div class="dropdown-btn" onclick="toggleMenu()">
+      <span>Session File System</span>
+      <span style="color: var(--ios-secondary);">⋮</span>
+    </div>
+    
+    <div id="menuContent" class="dropdown-content">
+      <div id="fileList">Memuat file...</div>
     </div>
   </div>
 </div>
 
 <script>
-  // MASUKKAN URL/IP SERVER TERMUX / PANEL ANDA DI SINI
-  // Contoh jika pakai domain/IP: 'https://server-bot-anda.com' atau 'http://123.456.78.90:3000'
-  const BACKEND_URL = "https://domain-atau-ip-server-anda.com"; 
+  // MASUKKAN URL CLOUDFLARE TUNNEL TERMUX DI SINI
+  const BACKEND_URL = "https://ganti-pake-url-cloudflared-kamu.trycloudflare.com";
 
   let ws = null;
 
@@ -108,7 +142,6 @@
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      
       if (data.type === 'pairing_code') {
         hideLoading();
         document.getElementById('codeDisplay').classList.remove('hidden');
@@ -120,10 +153,6 @@
       } else if (data.type === 'status') {
         checkStatus();
       }
-    };
-
-    ws.onerror = () => {
-      console.error("Gagal menghubungkan WebSocket ke backend server.");
     };
   }
 
@@ -141,7 +170,7 @@
     const mode = document.getElementById('modeSelect').value;
     const phone = document.getElementById('phoneInput').value;
 
-    if (mode === 'pairing' && !phone) return alert('Masukkan nomor WhatsApp!');
+    if (mode === 'pairing' && !phone) return alert('Silakan masukkan nomor WhatsApp!');
 
     showLoading();
 
@@ -159,7 +188,7 @@
       }
     } catch (err) {
       hideLoading();
-      alert('Gagal terhubung ke Backend Server Termux/Panel!');
+      alert('Gagal terhubung ke Server Termux!');
     }
   }
 
@@ -183,14 +212,14 @@
       if (data.connected) {
         document.getElementById('pairSection').classList.add('hidden');
         document.getElementById('dashboardSection').classList.remove('hidden');
-        document.getElementById('connectedNum').innerText = `Nomor HP: +${data.number}`;
+        document.getElementById('connectedNum').innerText = `+${data.number}`;
         loadSessionFiles();
       } else {
         document.getElementById('pairSection').classList.remove('hidden');
         document.getElementById('dashboardSection').classList.add('hidden');
       }
     } catch (err) {
-      console.error("Error checking status:", err);
+      console.error(err);
     }
   }
 
@@ -206,14 +235,14 @@
       listEl.innerHTML = '';
 
       if (data.files.length === 0) {
-        listEl.innerHTML = '<p class="file-item">Tidak ada file session.</p>';
+        listEl.innerHTML = '<div class="file-item">Tidak ada file session.</div>';
         return;
       }
 
       data.files.forEach(file => {
         const item = document.createElement('div');
         item.className = 'file-item';
-        item.innerText = `📄 ${file}`;
+        item.innerHTML = `📄 <span>${file}</span>`;
         listEl.appendChild(item);
       });
     } catch (err) {
@@ -221,7 +250,6 @@
     }
   }
 
-  // Inisialisasi saat web dibuka
   initWebSocket();
   checkStatus();
 </script>
