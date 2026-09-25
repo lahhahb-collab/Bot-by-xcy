@@ -223,7 +223,22 @@
       border: none;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
     }
+
+    /* SPINNER ANIMATION */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--accent-green);
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* FEATURE GRID */
     .section-title {
@@ -323,6 +338,10 @@
     .offline-title { font-size: 1.2rem; font-weight: 800; color: #ff453a; margin-bottom: 8px; }
     .offline-sub { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; }
 
+    /* QR BOX STYLING */
+    .qr-box { text-align: center; margin-top: 15px; }
+    .qr-box img { width: 220px; height: 220px; border-radius: 12px; border: 4px solid #ffffff; background: #ffffff; padding: 6px; }
+
     /* FOOTER */
     .footer {
       text-align: center;
@@ -371,7 +390,7 @@
         <div class="menu-item highlight" id="sessionMenuLabel" onclick="switchView('dashboard')">Sesi Bot XCY MD 1</div>
         <div class="menu-item" onclick="switchView('control')">command sesi bot 1</div>
         <div class="menu-item" onclick="switchView('session')">session sesi bot 1</div>
-        <div class="menu-item" id="dynamicPairMenuBtn" onclick="switchView('pair')" style="color: var(--accent-green); font-weight: 700;">Buat Bot Baru ke-1</div>
+        <div class="menu-item" id="dynamicPairMenuBtn" onclick="openPairView()" style="color: var(--accent-green); font-weight: 700;">Buat Bot Baru ke-1</div>
       </div>
     </div>
   </div>
@@ -393,7 +412,7 @@
       <div class="badge-top">WHATSAPP GATEWAY TERMURAH</div>
       <h1>WhatsApp <span>Gateway</span> untuk Grup, Bisnis, dan Otomasi</h1>
       <p>Hubungkan nomor, atur fitur, dan pantau bot dari satu dashboard. Proses cepat, performa stabil, dan ramah di kantong.</p>
-      <button class="primary-btn" onclick="switchView('pair')">Mulai Sekarang</button>
+      <button class="primary-btn" onclick="openPairView()">Mulai Sekarang</button>
     </div>
 
     <div class="anim-on-scroll" style="text-align: center; margin-top: 10px;">
@@ -462,14 +481,21 @@
         </div>
       </div>
 
-      <button id="startBtn" class="primary-btn" onclick="startConnection()">Dapatkan Kode Pair</button>
+      <button id="startBtn" class="primary-btn" onclick="startConnection()">Mulai Tautan</button>
       
+      <!-- TAMPILAN KODE PAIRING -->
       <div id="codeDisplay" class="hidden">
         <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 15px;">Kode Pairing XCY-MD Anda:</p>
         <div id="pairCode" class="code-box">------</div>
       </div>
 
-      <button class="primary-btn" style="background: transparent; color: var(--text-color); border: 1px solid var(--border-color); margin-top: 10px;" onclick="switchView('home')">Kembali ke Beranda</button>
+      <!-- TAMPILAN QR CODE -->
+      <div id="qrDisplay" class="qr-box hidden">
+        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px;">Pindai QR Code ini di WhatsApp:</p>
+        <img id="qrImage" src="" alt="QR Code">
+      </div>
+
+      <button class="primary-btn" style="background: transparent; color: var(--text-color); border: 1px solid var(--border-color); margin-top: 15px;" onclick="switchView('home')">Kembali ke Beranda</button>
     </div>
   </div>
 
@@ -524,7 +550,7 @@
   <div class="footer anim-on-scroll">
     <div class="footer-links">
       <span onclick="switchView('home')">Beranda</span>
-      <span onclick="switchView('pair')">Deploy</span>
+      <span onclick="openPairView()">Deploy</span>
     </div>
     <p>2026 XCY - MD Gateway. All rights reserved.</p>
   </div>
@@ -533,7 +559,7 @@
 
 <script>
   // Ganti dengan URL Cloudflare / Backend Anda
-  const BACKEND_URL = "https://alfred-llc-vast-brochures.trycloudflare.com";
+  const BACKEND_URL = "https://registration-chancellor-location-increases.trycloudflare.com";
 
   let ws = null;
   let myPhone = localStorage.getItem('userPhone') || '';
@@ -563,6 +589,16 @@
 
   function toggleNavMenu() {
     document.getElementById('navMenu').classList.toggle('show');
+  }
+
+  function openPairView() {
+    document.getElementById('phoneInput').value = '';
+    document.getElementById('codeDisplay').classList.add('hidden');
+    document.getElementById('qrDisplay').classList.add('hidden');
+    const btn = document.getElementById('startBtn');
+    btn.innerHTML = "Mulai Tautan";
+    btn.disabled = false;
+    switchView('pair');
   }
 
   function switchView(viewName) {
@@ -603,18 +639,24 @@
 
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
+        
         if (data.phone && !myPhone) {
           myPhone = data.phone;
           localStorage.setItem('userPhone', myPhone);
         }
-        if (myPhone && data.phone && data.phone !== myPhone) return;
 
         if (data.type === 'pairing_code') {
           const btn = document.getElementById('startBtn');
-          btn.innerText = "Dapatkan Kode Pair";
+          btn.innerHTML = "Mulai Tautan";
           btn.disabled = false;
           document.getElementById('codeDisplay').classList.remove('hidden');
           document.getElementById('pairCode').innerText = data.code;
+        } else if (data.type === 'qr_code') {
+          const btn = document.getElementById('startBtn');
+          btn.innerHTML = "Mulai Tautan";
+          btn.disabled = false;
+          document.getElementById('qrDisplay').classList.remove('hidden');
+          document.getElementById('qrImage').src = data.qr;
         } else if (data.type === 'status') {
           updateConnectionState(data.connected, data.phone);
         } else if (data.type === 'terminal_log') {
@@ -638,16 +680,19 @@
   function setServerOnlineState(online) {
     isServerOnline = online;
     const badge = document.getElementById('onlineBadge');
-    const mainMenuBtn = document.getElementById('mainMenuBtn');
 
     if (online) {
       badge.classList.remove('hidden');
       if (document.getElementById('offlineSection').classList.contains('hidden') === false && !myPhone) {
         switchView('home');
       }
+      // Memperbarui UI koneksi jika nomor ada di localStorage
+      if (myPhone) {
+        updateConnectionState(true, myPhone);
+      }
     } else {
       badge.classList.add('hidden');
-      mainMenuBtn.classList.add('hidden');
+      document.getElementById('mainMenuBtn').classList.add('hidden');
       document.getElementById('navMenu').classList.remove('show');
       switchView('offline');
     }
@@ -658,25 +703,28 @@
     const sessionLabel = document.getElementById('sessionMenuLabel');
     const pairMenuBtn = document.getElementById('dynamicPairMenuBtn');
 
-    if (connected && phone) {
-      myPhone = phone;
+    const targetPhone = phone || myPhone;
+
+    if (connected && targetPhone) {
+      myPhone = targetPhone;
       localStorage.setItem('userPhone', myPhone);
       
-      if (isServerOnline) {
-        mainMenuBtn.classList.remove('hidden');
-      }
-      sessionLabel.innerText = `Sesi Bot XCY MD 1 (+${phone})`;
-      document.getElementById('connectedNum').innerText = `+${phone}`;
+      // TAMPILKAN TOMBOL TITIK TIGA SAAT TERHUBUNG KONTINU
+      mainMenuBtn.classList.remove('hidden');
+
+      sessionLabel.innerText = `Sesi Bot XCY MD 1 (+${myPhone})`;
+      document.getElementById('connectedNum').innerText = `+${myPhone}`;
       pairMenuBtn.innerText = "Buat Bot Baru ke-2";
 
-      // OTOMATIS PINDAH KE DASHBOARD / BERANDA KETIKA BERHASIL TERHUBUNG
       if (document.getElementById('pairSection').classList.contains('hidden') === false || document.getElementById('offlineSection').classList.contains('hidden') === false) {
         switchView('dashboard');
       }
     } else {
-      mainMenuBtn.classList.add('hidden');
-      document.getElementById('navMenu').classList.remove('show');
-      pairMenuBtn.innerText = "Buat Bot Baru ke-1";
+      if (!phone && !myPhone) {
+        mainMenuBtn.classList.add('hidden');
+        document.getElementById('navMenu').classList.remove('show');
+        pairMenuBtn.innerText = "Buat Bot Baru ke-1";
+      }
     }
   }
 
@@ -684,23 +732,33 @@
     if (!isServerOnline) return;
     const mode = document.getElementById('modeSelect').value;
     const phone = document.getElementById('phoneInput').value.replace(/[^0-9]/g, "");
-    if (!phone) return alert('Masukkan nomor WhatsApp terlebih dahulu!');
-    myPhone = phone;
-    localStorage.setItem('userPhone', myPhone);
+    
+    if (mode === 'pairing' && !phone) {
+      return alert('Masukkan nomor WhatsApp terlebih dahulu untuk Pairing Code!');
+    }
+    
+    if (mode === 'pairing') {
+      myPhone = phone;
+      localStorage.setItem('userPhone', myPhone);
+    }
 
     const btn = document.getElementById('startBtn');
-    btn.innerText = "Memuat Kode...";
+    const loadingText = mode === 'qr' ? 'Memuat QR Code...' : 'Memuat Kode Pairing...';
+    btn.innerHTML = `<div class="spinner"></div> ${loadingText}`;
     btn.disabled = true;
+
+    document.getElementById('codeDisplay').classList.add('hidden');
+    document.getElementById('qrDisplay').classList.add('hidden');
 
     try {
       await fetch(`${BACKEND_URL}/api/connect`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode, phone: myPhone })
+        body: JSON.stringify({ mode, phone: mode === 'pairing' ? myPhone : 'qr_session' })
       });
     } catch (err) {
       alert('Gagal terhubung ke server backend.');
-      btn.innerText = "Dapatkan Kode Pair";
+      btn.innerHTML = "Mulai Tautan";
       btn.disabled = false;
     }
   }
@@ -752,10 +810,10 @@
 
   window.onload = () => {
     observeElements();
-    initWebSocket();
     if (myPhone) {
-      updateConnectionState(true, myPhone);
+      switchView('dashboard');
     }
+    initWebSocket();
   };
 </script>
 
