@@ -24,6 +24,10 @@
     
     .ios-card { width: 100%; max-width: 420px; background: var(--ios-card); border-radius: 24px; padding: 24px; border: 1px solid var(--ios-border); box-shadow: 0 20px 40px rgba(0,0,0,0.6); position: relative; }
 
+    .online-badge { position: absolute; top: 20px; right: 20px; z-index: 10; background: rgba(48, 209, 88, 0.15); border: 1px solid var(--ios-green); color: var(--ios-green); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
+    .online-dot { width: 8px; height: 8px; background-color: var(--ios-green); border-radius: 50%; box-shadow: 0 0 8px var(--ios-green); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
     .nav-top-left { position: absolute; top: 20px; left: 20px; z-index: 10; display: none; }
     .nav-btn { background: var(--ios-card-inner); border: 1px solid var(--ios-border); color: var(--ios-text); width: 38px; height: 38px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1.2rem; }
 
@@ -60,8 +64,9 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .code-box { font-size: 2rem; font-weight: 700; text-align: center; letter-spacing: 6px; color: var(--ios-green); padding: 16px; background: var(--ios-card-inner); border-radius: 16px; margin-top: 16px; border: 1px solid var(--ios-border); }
+    
     .qr-box { text-align: center; margin-top: 16px; }
-    .qr-box img { width: 200px; height: 200px; border-radius: 20px; border: 4px solid var(--ios-card-inner); }
+    .qr-box img { width: 280px; height: 280px; border-radius: 20px; border: 6px solid #ffffff; background: #ffffff; padding: 8px; }
 
     .content-box { display: none; }
     .content-box.active { display: block; }
@@ -69,11 +74,20 @@
     .file-item { padding: 10px; border-bottom: 1px solid var(--ios-border); font-size: 0.85rem; color: var(--ios-secondary); }
 
     .terminal-box { background: #000; border: 1px solid var(--ios-border); border-radius: 12px; padding: 12px; font-family: monospace; font-size: 0.75rem; color: #4ade80; height: 200px; overflow-y: auto; text-align: left; }
+
+    .offline-box { text-align: center; padding: 30px 10px; }
+    .offline-icon { font-size: 3rem; margin-bottom: 16px; display: block; }
+    .offline-title { font-size: 1.1rem; font-weight: 700; color: var(--ios-red); margin-bottom: 8px; letter-spacing: 0.5px; }
+    .offline-sub { font-size: 0.85rem; color: var(--ios-secondary); line-height: 1.4; }
   </style>
 </head>
 <body>
 
 <div class="ios-card">
+  <div class="online-badge hidden" id="onlineBadge">
+    <div class="online-dot"></div> ONLINE
+  </div>
+
   <div class="nav-top-left" id="navTopLeft">
     <div class="nav-btn" onclick="toggleNavMenu()">⋮</div>
     <div class="nav-menu" id="navMenu">
@@ -88,12 +102,19 @@
     <p>Multi-Session WhatsApp Platform</p>
   </div>
 
-  <!-- VIEW 1: PAIRING SECTION -->
-  <div id="pairSection" class="content-box active">
+  <div id="offlineSection" class="content-box active">
+    <div class="offline-box">
+      <span class="offline-icon">⚠️</span>
+      <div class="offline-title">SERVER BOT SEDANG OFFLINE</div>
+      <div class="offline-sub">TUNGGU ADMIN MENGAKTIFKAN SERVER NYA</div>
+    </div>
+  </div>
+
+  <div id="pairSection" class="content-box">
     <div class="group">
       <div class="row">
         <label>Metode Koneksi</label>
-        <select id="modeSelect" onchange="toggleModeInput()">
+        <select id="modeSelect">
           <option value="pairing">Pairing Code</option>
           <option value="qr">QR Code</option>
         </select>
@@ -117,12 +138,11 @@
     </div>
 
     <div id="qrDisplay" class="qr-box hidden">
-      <p style="font-size: 0.85rem; color: var(--ios-secondary); margin-bottom: 10px;">Pindai QR Code ini:</p>
+      <p style="font-size: 0.85rem; color: var(--ios-secondary); margin-bottom: 12px;">Pindai QR Code ini menggunakan kamera WhatsApp Anda:</p>
       <img id="qrImage" src="" alt="QR Code">
     </div>
   </div>
 
-  <!-- VIEW 2: DASHBOARD TERCONNECT -->
   <div id="dashboardSection" class="content-box">
     <div class="group">
       <div class="row">
@@ -136,7 +156,6 @@
     </div>
   </div>
 
-  <!-- VIEW 3: FILE SESSION -->
   <div id="sessionSection" class="content-box">
     <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--ios-blue);">📁 Session Files Anda</h3>
     <div class="group" style="max-height: 200px; overflow-y: auto;">
@@ -145,7 +164,6 @@
     <button class="ios-btn" onclick="switchView('dashboard')">Kembali ke Dashboard</button>
   </div>
 
-  <!-- VIEW 4: COMMAND PANEL -->
   <div id="controlSection" class="content-box">
     <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--ios-blue);">💻 Command Panel Sesi Anda</h3>
     
@@ -167,53 +185,86 @@
 </div>
 
 <script>
-  // MASUKKAN URL CLOUDFLARE TUNNEL TERBARU DARI TERMUX
-  const BACKEND_URL = "https://accessories-chorus-shipments-edinburgh.trycloudflare.com";
+  // DOMAIN STATIS NGROK ANDA
+  const BACKEND_URL = "https://stipend-thesis-employed.ngrok-free.dev";
 
   let ws = null;
-  let currentView = 'pair';
+  let currentView = 'offline';
   let myPhone = localStorage.getItem('userPhone') || '';
+  let isServerOnline = false;
 
   function initWebSocket() {
     if (!BACKEND_URL) return;
     const wsUrl = BACKEND_URL.replace(/^http/, 'ws');
     
-    ws = new WebSocket(wsUrl);
+    try {
+      ws = new WebSocket(wsUrl);
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+      ws.onopen = () => {
+        setServerOnlineState(true);
+      };
 
-      // Jika ada respon pairing code / status terkait nomor pengguna ini
-      if (data.phone) {
-        if (!myPhone) {
-          myPhone = data.phone;
-          localStorage.setItem('userPhone', myPhone);
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        if (data.phone) {
+          if (!myPhone) {
+            myPhone = data.phone;
+            localStorage.setItem('userPhone', myPhone);
+          }
         }
-      }
 
-      if (myPhone && data.phone && data.phone !== myPhone) return;
+        if (myPhone && data.phone && data.phone !== myPhone) return;
 
-      if (data.type === 'pairing_code') {
-        hideLoading();
-        document.getElementById('codeDisplay').classList.remove('hidden');
-        document.getElementById('pairCode').innerText = data.code;
-      } else if (data.type === 'qr_code') {
-        hideLoading();
-        document.getElementById('qrDisplay').classList.remove('hidden');
-        document.getElementById('qrImage').src = data.qr;
-      } else if (data.type === 'status') {
-        if (data.connected && data.phone === myPhone) {
-          document.getElementById('connectedNum').innerText = `+${myPhone}`;
-          document.getElementById('navTopLeft').style.display = 'block';
-          switchView('dashboard');
-        } else if (!data.connected && data.phone === myPhone) {
-          document.getElementById('navTopLeft').style.display = 'none';
-          switchView('pair');
+        if (data.type === 'pairing_code') {
+          hideLoading();
+          document.getElementById('codeDisplay').classList.remove('hidden');
+          document.getElementById('pairCode').innerText = data.code;
+        } else if (data.type === 'qr_code') {
+          hideLoading();
+          document.getElementById('qrDisplay').classList.remove('hidden');
+          document.getElementById('qrImage').src = data.qr;
+        } else if (data.type === 'status') {
+          if (data.connected && data.phone === myPhone) {
+            document.getElementById('connectedNum').innerText = `+${myPhone}`;
+            document.getElementById('navTopLeft').style.display = 'block';
+            switchView('dashboard');
+          } else if (!data.connected && data.phone === myPhone) {
+            document.getElementById('navTopLeft').style.display = 'none';
+            switchView('pair');
+          }
+        } else if (data.type === 'terminal_log') {
+          appendTerminalLog(data.log);
         }
-      } else if (data.type === 'terminal_log') {
-        appendTerminalLog(data.log);
+      };
+
+      ws.onerror = () => {
+        setServerOnlineState(false);
+      };
+
+      ws.onclose = () => {
+        setServerOnlineState(false);
+        setTimeout(initWebSocket, 4000);
+      };
+    } catch(e) {
+      setServerOnlineState(false);
+    }
+  }
+
+  function setServerOnlineState(online) {
+    isServerOnline = online;
+    const badge = document.getElementById('onlineBadge');
+
+    if (online) {
+      badge.classList.remove('hidden');
+      if (currentView === 'offline') {
+        checkStatus();
       }
-    };
+    } else {
+      badge.classList.add('hidden');
+      document.getElementById('navTopLeft').style.display = 'none';
+      switchView('offline');
+    }
   }
 
   function appendTerminalLog(logText) {
@@ -242,26 +293,18 @@
       document.getElementById('dashboardSection').classList.add('active');
     } else if (viewName === 'pair') {
       document.getElementById('pairSection').classList.add('active');
-    }
-  }
-
-  function toggleModeInput() {
-    const mode = document.getElementById('modeSelect').value;
-    const phoneGroup = document.getElementById('phoneInputGroup');
-    if (mode === 'qr') {
-      phoneGroup.classList.add('hidden');
-    } else {
-      phoneGroup.classList.remove('hidden');
+    } else if (viewName === 'offline') {
+      document.getElementById('offlineSection').classList.add('active');
     }
   }
 
   async function startConnection() {
+    if (!isServerOnline) return;
     const mode = document.getElementById('modeSelect').value;
     const phone = document.getElementById('phoneInput').value.replace(/[^0-9]/g, "");
 
-    if (!phone) return alert('Silakan masukkan nomor WhatsApp Anda!');
+    if (!phone) return alert('Silakan masukkan nomor WhatsApp Anda terlebih dahulu!');
 
-    // SIMPAN LANGSUNG NOMOR NOMOR DI MEMORI HP TERLEBIH DAHULU
     myPhone = phone;
     localStorage.setItem('userPhone', myPhone);
 
@@ -280,12 +323,12 @@
       }
     } catch (err) {
       hideLoading();
-      alert('Gagal terhubung ke Server!');
+      setServerOnlineState(false);
     }
   }
 
   async function sendControl(action) {
-    if (!myPhone) return;
+    if (!myPhone || !isServerOnline) return;
     try {
       appendTerminalLog(`[CLIENT] Mengirim perintah: ${action.toUpperCase()}...`);
       const res = await fetch(`${BACKEND_URL}/api/control`, {
@@ -320,6 +363,11 @@
   }
 
   async function checkStatus() {
+    if (!isServerOnline) {
+      switchView('offline');
+      return;
+    }
+
     if (!myPhone) {
       switchView('pair');
       document.getElementById('navTopLeft').style.display = 'none';
@@ -334,7 +382,7 @@
         document.getElementById('connectedNum').innerText = `+${myPhone}`;
         document.getElementById('navTopLeft').style.display = 'block';
 
-        if (currentView === 'pair') {
+        if (currentView === 'pair' || currentView === 'offline') {
           switchView('dashboard');
         }
       } else {
@@ -344,12 +392,12 @@
         }
       }
     } catch (err) {
-      console.error(err);
+      setServerOnlineState(false);
     }
   }
 
   async function loadSessionFiles() {
-    if (!myPhone) return;
+    if (!myPhone || !isServerOnline) return;
     try {
       const res = await fetch(`${BACKEND_URL}/api/session-files?phone=${myPhone}`);
       const data = await res.json();
@@ -373,7 +421,9 @@
   }
 
   initWebSocket();
-  checkStatus();
+  setInterval(() => {
+    if (!isServerOnline) initWebSocket();
+  }, 5000);
 </script>
 
 </body>
