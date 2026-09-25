@@ -1,211 +1,597 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>XCY WhatsApp Bot</title>
+  <title>XCY - MD | WhatsApp Gateway</title>
   <style>
     :root {
-      --ios-bg: #000000;
-      --ios-card: #1c1c1e;
-      --ios-card-inner: #2c2c2e;
-      --ios-blue: #0a84ff;
-      --ios-green: #30d158;
-      --ios-red: #ff453a;
-      --ios-orange: #ff9f0a;
-      --ios-text: #ffffff;
-      --ios-secondary: #8e8e93;
-      --ios-border: rgba(255, 255, 255, 0.12);
+      --bg-color: #f4f4f4;
+      --card-bg: #ffffff;
+      --text-color: #111111;
+      --text-secondary: #666666;
+      --accent-green: #008037;
+      --border-color: rgba(0, 0, 0, 0.08);
+      --btn-bg: #111111;
+      --btn-text: #ffffff;
+      --dot-grid: radial-gradient(circle, #d0d0d0 1px, transparent 1px);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-tap-highlight-color: transparent; }
-    
-    body { background-color: var(--ios-bg); color: var(--ios-text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; position: relative; }
-    
-    .ios-card { width: 100%; max-width: 420px; background: var(--ios-card); border-radius: 24px; padding: 24px; border: 1px solid var(--ios-border); box-shadow: 0 20px 40px rgba(0,0,0,0.6); position: relative; }
+    [data-theme="dark"] {
+      --bg-color: #0b0b0b;
+      --card-bg: #161618;
+      --text-color: #ffffff;
+      --text-secondary: #999999;
+      --accent-green: #30d158;
+      --border-color: rgba(255, 255, 255, 0.1);
+      --btn-bg: #ffffff;
+      --btn-text: #000000;
+      --dot-grid: radial-gradient(circle, #262626 1px, transparent 1px);
+    }
 
-    .online-badge { position: absolute; top: 20px; right: 20px; z-index: 10; background: rgba(48, 209, 88, 0.15); border: 1px solid var(--ios-green); color: var(--ios-green); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
-    .online-dot { width: 8px; height: 8px; background-color: var(--ios-green); border-radius: 50%; box-shadow: 0 0 8px var(--ios-green); animation: pulse 1.5s infinite; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; transition: background 0.3s ease, color 0.3s ease; }
+
+    body {
+      background-color: var(--bg-color);
+      background-image: var(--dot-grid);
+      background-size: 24px 24px;
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+    }
+
+    /* NAVBAR HEADER */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 4px;
+      position: relative;
+      z-index: 9999;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--accent-green);
+      letter-spacing: -0.5px;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .online-badge {
+      background: rgba(48, 209, 88, 0.15);
+      border: 1px solid var(--accent-green);
+      color: var(--accent-green);
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .online-dot { width: 6px; height: 6px; background-color: var(--accent-green); border-radius: 50%; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-    .nav-top-left { position: absolute; top: 20px; left: 20px; z-index: 10; display: none; }
-    .nav-btn { background: var(--ios-card-inner); border: 1px solid var(--ios-border); color: var(--ios-text); width: 38px; height: 38px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1.2rem; }
+    .theme-switch {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 6px 12px;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
 
-    .nav-menu { display: none; position: absolute; top: 46px; left: 0; background: var(--ios-card-inner); border: 1px solid var(--ios-border); border-radius: 14px; width: 200px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); overflow: hidden; z-index: 100; }
-    .nav-menu.show { display: block; }
-    .nav-item { padding: 12px 16px; font-size: 0.9rem; color: var(--ios-text); border-bottom: 1px solid var(--ios-border); cursor: pointer; display: flex; align-items: center; gap: 8px; }
-    .nav-item:last-child { border-bottom: none; }
+    .toggle-dot {
+      width: 32px;
+      height: 18px;
+      background: #ccc;
+      border-radius: 20px;
+      position: relative;
+      transition: background 0.3s;
+    }
 
-    .header { text-align: center; margin-bottom: 24px; margin-top: 10px; }
-    .header img { width: 64px; height: 64px; border-radius: 16px; margin-bottom: 12px; }
-    .header h1 { font-size: 1.4rem; font-weight: 700; }
-    .header p { font-size: 0.85rem; color: var(--ios-secondary); margin-top: 4px; }
+    .toggle-dot::before {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.3s;
+    }
 
-    .group { background: var(--ios-card-inner); border-radius: 16px; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--ios-border); }
-    .row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--ios-border); }
-    .row:last-child { border-bottom: none; }
-    .row label { font-size: 0.95rem; color: var(--ios-text); }
+    [data-theme="dark"] .toggle-dot { background: var(--accent-green); }
+    [data-theme="dark"] .toggle-dot::before { transform: translateX(14px); }
 
-    select, input[type="text"] { background: transparent; border: none; color: var(--ios-blue); font-size: 0.95rem; text-align: right; outline: none; width: 60%; }
+    .menu-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: var(--text-color);
+    }
 
-    .ios-btn { width: 100%; background: var(--ios-blue); color: #fff; font-size: 1rem; font-weight: 600; padding: 14px; border-radius: 14px; border: none; cursor: pointer; transition: all 0.2s ease; margin-bottom: 8px; }
-    .ios-btn:active { opacity: 0.7; transform: scale(0.98); }
+    /* DROPDOWN MENU */
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 60px;
+      right: 4px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 230px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+      overflow: hidden;
+      z-index: 10000;
+    }
+    .dropdown-menu.show { display: block; }
+    .menu-item {
+      padding: 14px 18px;
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 500;
+    }
+    .menu-item:last-child { border-bottom: none; }
+    .menu-item.highlight {
+      color: var(--accent-green);
+      font-weight: 700;
+      background: rgba(0, 128, 55, 0.05);
+    }
 
-    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-    .btn-start { background: var(--ios-green); }
-    .btn-stop { background: var(--ios-orange); }
-    .btn-restart { background: var(--ios-blue); }
-    .btn-logout { background: var(--ios-red); }
+    /* HERO SECTION */
+    .hero-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 30px 20px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+
+    .badge-top {
+      display: inline-block;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-card h1 {
+      font-size: 2.1rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+    }
+
+    .hero-card h1 span { color: var(--accent-green); }
+
+    .hero-card p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .primary-btn {
+      width: 100%;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 14px;
+      border-radius: 16px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    /* FEATURE GRID */
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      text-align: center;
+      margin-top: 10px;
+      letter-spacing: -0.5px;
+    }
+    .section-sub {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .feature-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 20px 10px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .feature-icon {
+      font-size: 0.9rem;
+      background: var(--bg-color);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-color);
+      font-weight: 700;
+    }
+
+    .feature-box span {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+
+    .big-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 24px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .big-card h3 { font-size: 1.1rem; font-weight: 700; }
+    .big-card p { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; }
+
+    /* FAQ ACCORDION */
+    .faq-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    /* SCROLL ANIMATION SYSTEM */
+    .anim-on-scroll {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+    }
+    .anim-on-scroll.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* OFFLINE SECTION */
+    .offline-box { text-align: center; padding: 40px 10px; }
+    .offline-title { font-size: 1.2rem; font-weight: 800; color: #ff453a; margin-bottom: 8px; }
+    .offline-sub { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; }
+
+    /* FOOTER */
+    .footer {
+      text-align: center;
+      padding: 30px 10px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-top: 1px solid var(--border-color);
+      margin-top: 20px;
+    }
+    .footer-links { display: flex; justify-content: center; gap: 15px; font-weight: 600; }
+    .footer-links span { cursor: pointer; }
 
     .hidden { display: none !important; }
 
-    .spinner-box { text-align: center; padding: 20px 0; }
-    .ios-spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.15); border-radius: 50%; border-top-color: var(--ios-blue); animation: spin 0.8s ease-in-out infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .group { background: var(--card-bg); border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 15px; width: 100%; }
+    .row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border-color); }
+    .row:last-child { border-bottom: none; }
+    select, input[type="text"] { background: transparent; border: none; color: var(--accent-green); font-size: 0.95rem; text-align: right; outline: none; width: 60%; font-weight: 600; }
 
-    .code-box { font-size: 2rem; font-weight: 700; text-align: center; letter-spacing: 6px; color: var(--ios-green); padding: 16px; background: var(--ios-card-inner); border-radius: 16px; margin-top: 16px; border: 1px solid var(--ios-border); }
-    
-    .qr-box { text-align: center; margin-top: 16px; }
-    .qr-box img { width: 280px; height: 280px; border-radius: 20px; border: 6px solid #ffffff; background: #ffffff; padding: 8px; }
-
-    .content-box { display: none; }
-    .content-box.active { display: block; }
-
-    .file-item { padding: 10px; border-bottom: 1px solid var(--ios-border); font-size: 0.85rem; color: var(--ios-secondary); }
-
-    .terminal-box { background: #000; border: 1px solid var(--ios-border); border-radius: 12px; padding: 12px; font-family: monospace; font-size: 0.75rem; color: #4ade80; height: 200px; overflow-y: auto; text-align: left; }
-
-    .offline-box { text-align: center; padding: 30px 10px; }
-    .offline-icon { font-size: 3rem; margin-bottom: 16px; display: block; }
-    .offline-title { font-size: 1.1rem; font-weight: 700; color: var(--ios-red); margin-bottom: 8px; letter-spacing: 0.5px; }
-    .offline-sub { font-size: 0.85rem; color: var(--ios-secondary); line-height: 1.4; }
+    .code-box { font-size: 1.8rem; font-weight: 800; text-align: center; letter-spacing: 4px; color: var(--accent-green); padding: 16px; background: var(--bg-color); border-radius: 16px; border: 1px solid var(--border-color); margin-top: 10px; }
+    .terminal-box { background: #000; border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; font-family: monospace; font-size: 0.75rem; color: #4ade80; height: 180px; overflow-y: auto; text-align: left; }
+    .file-item { padding: 10px 14px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-secondary); }
   </style>
 </head>
 <body>
 
-<div class="ios-card">
-  <!-- BADGE ONLINE DI KANAN ATAS -->
-  <div class="online-badge hidden" id="onlineBadge">
-    <div class="online-dot"></div> ONLINE
-  </div>
-
-  <!-- NAVIGASI KIRI ATAS (HANYA MUNCUL KETIKA SUDAH TERHUBUNG) -->
-  <div class="nav-top-left" id="navTopLeft">
-    <div class="nav-btn" onclick="toggleNavMenu()">⋮</div>
-    <div class="nav-menu" id="navMenu">
-      <div class="nav-item" onclick="switchView('dashboard')">📊 Dashboard Status</div>
-      <div class="nav-item" onclick="switchView('session')">📁 File Session</div>
-      <div class="nav-item" onclick="switchView('control')">💻 Command Panel</div>
-    </div>
-  </div>
-
-  <div class="header">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA Logo">
-    <h1>XCY WhatsApp Bot</h1>
-    <p>Multi-Session WhatsApp Platform</p>
-  </div>
-
-  <!-- HALAMAN 1: SERVER OFFLINE -->
-  <div id="offlineSection" class="content-box active">
-    <div class="offline-box">
-      <span class="offline-icon">⚠️</span>
-      <div class="offline-title">SERVER BOT SEDANG OFFLINE</div>
-      <div class="offline-sub">TUNGGU ADMIN MENGAKTIFKAN SERVER NYA</div>
-    </div>
-  </div>
-
-  <!-- HALAMAN 2: PAIRING CODE / QR CODE -->
-  <div id="pairSection" class="content-box">
-    <div class="group">
-      <div class="row">
-        <label>Metode Koneksi</label>
-        <select id="modeSelect">
-          <option value="pairing">Pairing Code</option>
-          <option value="qr">QR Code</option>
-        </select>
+<div class="container">
+  
+  <!-- NAVBAR -->
+  <div class="navbar anim-on-scroll">
+    <div class="logo">XCY - MD</div>
+    <div class="nav-right">
+      <div class="online-badge hidden" id="onlineBadge">
+        <div class="online-dot"></div> ONLINE
       </div>
-      <div class="row" id="phoneInputGroup">
-        <label>Nomor HP Anda</label>
-        <input type="text" id="phoneInput" placeholder="628xxx">
+      <div class="theme-switch" onclick="toggleTheme()">
+        <span id="themeText">Dark</span>
+        <div class="toggle-dot"></div>
+      </div>
+      <!-- Tombol Titik Tiga -->
+      <div class="menu-btn hidden" id="mainMenuBtn" onclick="toggleNavMenu()">⋮</div>
+      <div class="dropdown-menu" id="navMenu">
+        <div class="menu-item highlight" id="sessionMenuLabel" onclick="switchView('dashboard')">Sesi Bot XCY MD 1</div>
+        <div class="menu-item" onclick="switchView('control')">command sesi bot 1</div>
+        <div class="menu-item" onclick="switchView('session')">session sesi bot 1</div>
+        <div class="menu-item" id="dynamicPairMenuBtn" onclick="switchView('pair')" style="color: var(--accent-green); font-weight: 700;">Buat Bot Baru ke-1</div>
       </div>
     </div>
-
-    <button id="startBtn" class="ios-btn" onclick="startConnection()">Mulai Tautan</button>
-
-    <div id="loadingBox" class="spinner-box hidden">
-      <div class="ios-spinner"></div>
-      <p style="font-size: 0.85rem; color: var(--ios-secondary); margin-top: 10px;">Menghubungkan ke Server...</p>
-    </div>
-
-    <div id="codeDisplay" class="hidden">
-      <p style="font-size: 0.85rem; color: var(--ios-secondary); text-align: center;">Kode Pairing WhatsApp Anda:</p>
-      <div id="pairCode" class="code-box">------</div>
-    </div>
-
-    <div id="qrDisplay" class="qr-box hidden">
-      <p style="font-size: 0.85rem; color: var(--ios-secondary); margin-bottom: 12px;">Pindai QR Code ini menggunakan kamera WhatsApp Anda:</p>
-      <img id="qrImage" src="" alt="QR Code">
-    </div>
   </div>
 
-  <!-- HALAMAN 3: DASHBOARD KHUSUS (MUNCUL OTOMATIS SETELAH TERHUBUNG) -->
-  <div id="dashboardSection" class="content-box">
-    <div class="group">
-      <div class="row">
-        <label>Status WhatsApp</label>
-        <span id="statusBadge" style="color: var(--ios-green); font-weight: 600; font-size: 0.95rem;">● Terhubung</span>
-      </div>
-      <div class="row">
-        <label>Nomor Tertaut</label>
-        <span id="connectedNum" style="color: var(--ios-blue); font-weight: 600; font-size: 0.95rem;">-</span>
+  <!-- HALAMAN SERVER OFFLINE -->
+  <div id="offlineSection" class="content-view">
+    <div class="hero-card anim-on-scroll">
+      <div class="offline-box">
+        <div class="offline-title">SERVER BOT SEDANG OFFLINE</div>
+        <div class="offline-sub">Tunggu admin mengaktifkan server-nya kembali atau periksa koneksi backend.</div>
       </div>
     </div>
-    <p style="font-size: 0.8rem; color: var(--ios-secondary); text-align: center; margin-top: 10px;">
-      Gunakan tombol menu (⋮) di pojok kiri atas untuk melihat File Session atau Mengontrol Bot.
-    </p>
   </div>
 
-  <!-- HALAMAN 4: FILE SESSION -->
-  <div id="sessionSection" class="content-box">
-    <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--ios-blue);">📁 Session Files Anda</h3>
-    <div class="group" style="max-height: 200px; overflow-y: auto;">
-      <div id="fileList"><p class="file-item">Memuat file...</p></div>
-    </div>
-    <button class="ios-btn" onclick="switchView('dashboard')">Kembali ke Dashboard</button>
-  </div>
-
-  <!-- HALAMAN 5: COMMAND PANEL -->
-  <div id="controlSection" class="content-box">
-    <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--ios-blue);">💻 Command Panel Sesi Anda</h3>
+  <!-- HALAMAN UTAMA / BERANDA -->
+  <div id="homeSection" class="content-view hidden">
     
-    <div class="btn-grid">
-      <button class="ios-btn btn-start" onclick="sendControl('start')">▶ Start</button>
-      <button class="ios-btn btn-stop" onclick="sendControl('stop')">⏹ Stop</button>
-      <button class="ios-btn btn-restart" onclick="sendControl('restart')">🔄 Restart</button>
-      <button class="ios-btn btn-logout" onclick="sendControl('logout')">🚪 Log Out</button>
+    <div class="hero-card anim-on-scroll">
+      <div class="badge-top">WHATSAPP GATEWAY TERMURAH</div>
+      <h1>WhatsApp <span>Gateway</span> untuk Grup, Bisnis, dan Otomasi</h1>
+      <p>Hubungkan nomor, atur fitur, dan pantau bot dari satu dashboard. Proses cepat, performa stabil, dan ramah di kantong.</p>
+      <button class="primary-btn" onclick="switchView('pair')">Mulai Sekarang</button>
     </div>
 
-    <p style="font-size: 0.8rem; color: var(--ios-secondary); margin-bottom: 6px;">Output Log Sesi Real-Time:</p>
-    <div class="terminal-box" id="terminalOutput">
-      <div>[SYSTEM] Terminal tersambung...</div>
+    <div class="anim-on-scroll" style="text-align: center; margin-top: 10px;">
+      <h2 class="section-title">Satu Bot untuk Semua Kebutuhan</h2>
+      <p class="section-sub">Semua modul aktif otomatis begitu nomor terhubung.</p>
     </div>
-    <br>
-    <button class="ios-btn" onclick="switchView('dashboard')">Kembali ke Dashboard</button>
+
+    <div class="feature-grid anim-on-scroll">
+      <div class="feature-box"><div class="feature-icon">CH</div><span>Chat</span></div>
+      <div class="feature-box"><div class="feature-icon">MB</div><span>Mobile</span></div>
+      <div class="feature-box"><div class="feature-icon">GRP</div><span>Grup</span></div>
+      <div class="feature-box"><div class="feature-icon">STK</div><span>Sticker</span></div>
+      <div class="feature-box"><div class="feature-icon">MUS</div><span>Musik</span></div>
+      <div class="feature-box"><div class="feature-icon">GAM</div><span>Game</span></div>
+    </div>
+
+    <div class="anim-on-scroll" style="text-align: center; margin-top: 15px;">
+      <h2 class="section-title">Fitur Unggulan Kami</h2>
+      <p class="section-sub">Sistem pintar yang dirancang untuk komunitas masa kini.</p>
+    </div>
+
+    <div class="big-card anim-on-scroll">
+      <div class="feature-icon">DL</div>
+      <h3>Multi Downloader</h3>
+      <p>Download media dari TikTok, Instagram, YouTube, dan Spotify dengan kualitas original tanpa watermark.</p>
+    </div>
+
+    <div class="big-card anim-on-scroll">
+      <div class="feature-icon">MG</div>
+      <h3>Minigames Interaktif</h3>
+      <p>Tingkatkan interaksi grup dengan game tebak kata, susun kata, lengkap dengan sistem Leaderboard.</p>
+    </div>
+
+    <div class="anim-on-scroll" style="text-align: center; margin-top: 15px;">
+      <h2 class="section-title">Pertanyaan yang Sering Diajukan</h2>
+      <p class="section-sub">Temukan jawaban untuk pertanyaan umum tentang layanan kami.</p>
+    </div>
+
+    <div class="anim-on-scroll">
+      <div class="faq-item"><span>Apa itu WhatsApp Gateway?</span> <span>v</span></div>
+      <div class="faq-item"><span>Apakah layanan ini resmi dari WhatsApp?</span> <span>v</span></div>
+      <div class="faq-item"><span>Bagaimana cara menghubungkan nomor saya?</span> <span>v</span></div>
+      <div class="faq-item"><span>Apakah data saya aman?</span> <span>v</span></div>
+      <div class="faq-item"><span>Apakah bot aktif 24 jam?</span> <span>v</span></div>
+    </div>
+
+  </div>
+
+  <!-- HALAMAN PAIRING / DEPLOY BOT BARU -->
+  <div id="pairSection" class="content-view hidden">
+    <div class="hero-card anim-on-scroll">
+      <h2 style="font-size: 1.4rem; margin-bottom: 8px;">Deploy Bot XCY - MD Baru</h2>
+      <p>Hubungkan nomor WhatsApp untuk dijadikan instansi bot baru di server ini.</p>
+      
+      <div class="group" style="margin-top: 20px; text-align: left;">
+        <div class="row">
+          <label style="font-size:0.9rem;">Metode</label>
+          <select id="modeSelect">
+            <option value="pairing">KODE PAIRING</option>
+            <option value="qr">QR CODE</option>
+          </select>
+        </div>
+        <div class="row">
+          <label style="font-size:0.9rem;">Nomor WA</label>
+          <input type="text" id="phoneInput" placeholder="628xxx">
+        </div>
+      </div>
+
+      <button id="startBtn" class="primary-btn" onclick="startConnection()">Dapatkan Kode Pair</button>
+      
+      <div id="codeDisplay" class="hidden">
+        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 15px;">Kode Pairing XCY-MD Anda:</p>
+        <div id="pairCode" class="code-box">------</div>
+      </div>
+
+      <button class="primary-btn" style="background: transparent; color: var(--text-color); border: 1px solid var(--border-color); margin-top: 10px;" onclick="switchView('home')">Kembali ke Beranda</button>
+    </div>
+  </div>
+
+  <!-- HALAMAN DASHBOARD / SESI BOT TERHUBUNG -->
+  <div id="dashboardSection" class="content-view hidden">
+    <div class="hero-card anim-on-scroll">
+      <h2 style="font-size: 1.3rem; margin-bottom: 15px;">Dashboard Sesi Bot</h2>
+      <div class="group" style="text-align: left;">
+        <div class="row">
+          <label>Status Bot</label>
+          <span style="color: var(--accent-green); font-weight: 700;">Terhubung Aktif</span>
+        </div>
+        <div class="row">
+          <label>Nomor Sesi</label>
+          <span id="connectedNum" style="font-weight: 700;">-</span>
+        </div>
+      </div>
+      <button class="primary-btn" onclick="switchView('home')">Kembali ke Beranda</button>
+    </div>
+  </div>
+
+  <!-- HALAMAN FILE SESSION -->
+  <div id="sessionSection" class="content-view hidden">
+    <div class="hero-card anim-on-scroll" style="text-align: left;">
+      <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: var(--accent-green);">session sesi bot 1</h3>
+      <div class="group" style="max-height: 220px; overflow-y: auto;">
+        <div id="fileList"><p class="file-item">Memuat file session...</p></div>
+      </div>
+      <button class="primary-btn" onclick="switchView('home')" style="margin-top: 10px;">Kembali</button>
+    </div>
+  </div>
+
+  <!-- HALAMAN COMMAND PANEL -->
+  <div id="controlSection" class="content-view hidden">
+    <div class="hero-card anim-on-scroll" style="text-align: left;">
+      <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: var(--accent-green);">command sesi bot 1</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+        <button class="primary-btn" style="background: #30d158; padding: 10px; font-size: 0.85rem;" onclick="sendControl('start')">Start</button>
+        <button class="primary-btn" style="background: #ff9f0a; padding: 10px; font-size: 0.85rem;" onclick="sendControl('stop')">Stop</button>
+        <button class="primary-btn" style="background: #0a84ff; padding: 10px; font-size: 0.85rem;" onclick="sendControl('restart')">Restart</button>
+        <button class="primary-btn" style="background: #ff453a; padding: 10px; font-size: 0.85rem;" onclick="sendControl('logout')">Logout</button>
+      </div>
+      <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 4px;">Real-time Log:</p>
+      <div class="terminal-box" id="terminalOutput">
+        <div>[SYSTEM] Menunggu log server...</div>
+      </div>
+      <button class="primary-btn" onclick="switchView('home')" style="margin-top: 12px;">Kembali</button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer anim-on-scroll">
+    <div class="footer-links">
+      <span onclick="switchView('home')">Beranda</span>
+      <span onclick="switchView('pair')">Deploy</span>
+    </div>
+    <p>2026 XCY - MD Gateway. All rights reserved.</p>
   </div>
 
 </div>
 
 <script>
-  // TEMPELKAN URL CLOUDFLARE DARI TERMUX ANDA DI SINI
+  // Ganti dengan URL Cloudflare / Backend Anda
   const BACKEND_URL = "https://alfred-llc-vast-brochures.trycloudflare.com";
 
   let ws = null;
-  let currentView = 'offline';
   let myPhone = localStorage.getItem('userPhone') || '';
   let isServerOnline = false;
 
+  const observerOptions = { threshold: 0.1 };
+  const scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      } else {
+        entry.target.classList.remove('visible');
+      }
+    });
+  }, observerOptions);
+
+  function observeElements() {
+    document.querySelectorAll('.anim-on-scroll').forEach(el => scrollObserver.observe(el));
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('themeText').innerText = isDark ? 'Light' : 'Dark';
+  }
+
+  function toggleNavMenu() {
+    document.getElementById('navMenu').classList.toggle('show');
+  }
+
+  function switchView(viewName) {
+    document.getElementById('navMenu').classList.remove('show');
+    document.querySelectorAll('.content-view').forEach(el => el.classList.add('hidden'));
+
+    if (viewName === 'home') {
+      document.getElementById('homeSection').classList.remove('hidden');
+    } else if (viewName === 'pair') {
+      document.getElementById('pairSection').classList.remove('hidden');
+    } else if (viewName === 'dashboard') {
+      document.getElementById('dashboardSection').classList.remove('hidden');
+    } else if (viewName === 'session') {
+      document.getElementById('sessionSection').classList.remove('hidden');
+      loadSessionFiles();
+    } else if (viewName === 'control') {
+      document.getElementById('controlSection').classList.remove('hidden');
+    } else if (viewName === 'offline') {
+      document.getElementById('offlineSection').classList.remove('hidden');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(observeElements, 100);
+  }
+
   function initWebSocket() {
-    if (!BACKEND_URL || BACKEND_URL.includes("PASTE-URL")) return;
+    if (!BACKEND_URL || BACKEND_URL.includes("PASTE-URL")) {
+      setServerOnlineState(false);
+      return;
+    }
     const wsUrl = BACKEND_URL.replace(/^http/, 'ws');
     
     try {
@@ -217,34 +603,20 @@
 
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-
-        if (data.phone) {
-          if (!myPhone) {
-            myPhone = data.phone;
-            localStorage.setItem('userPhone', myPhone);
-          }
+        if (data.phone && !myPhone) {
+          myPhone = data.phone;
+          localStorage.setItem('userPhone', myPhone);
         }
-
         if (myPhone && data.phone && data.phone !== myPhone) return;
 
         if (data.type === 'pairing_code') {
-          hideLoading();
+          const btn = document.getElementById('startBtn');
+          btn.innerText = "Dapatkan Kode Pair";
+          btn.disabled = false;
           document.getElementById('codeDisplay').classList.remove('hidden');
           document.getElementById('pairCode').innerText = data.code;
-        } else if (data.type === 'qr_code') {
-          hideLoading();
-          document.getElementById('qrDisplay').classList.remove('hidden');
-          document.getElementById('qrImage').src = data.qr;
         } else if (data.type === 'status') {
-          if (data.connected && data.phone === myPhone) {
-            document.getElementById('connectedNum').innerText = `+${myPhone}`;
-            document.getElementById('navTopLeft').style.display = 'block';
-            // PINDAH OTOMATIS KE DASHBOARD SAAT STATUS TERHUBUNG
-            switchView('dashboard');
-          } else if (!data.connected && data.phone === myPhone) {
-            document.getElementById('navTopLeft').style.display = 'none';
-            switchView('pair');
-          }
+          updateConnectionState(data.connected, data.phone);
         } else if (data.type === 'terminal_log') {
           appendTerminalLog(data.log);
         }
@@ -266,47 +638,45 @@
   function setServerOnlineState(online) {
     isServerOnline = online;
     const badge = document.getElementById('onlineBadge');
+    const mainMenuBtn = document.getElementById('mainMenuBtn');
 
     if (online) {
       badge.classList.remove('hidden');
-      if (currentView === 'offline') {
-        checkStatus();
+      if (document.getElementById('offlineSection').classList.contains('hidden') === false && !myPhone) {
+        switchView('home');
       }
     } else {
       badge.classList.add('hidden');
-      document.getElementById('navTopLeft').style.display = 'none';
+      mainMenuBtn.classList.add('hidden');
+      document.getElementById('navMenu').classList.remove('show');
       switchView('offline');
     }
   }
 
-  function appendTerminalLog(logText) {
-    const term = document.getElementById('terminalOutput');
-    const line = document.createElement('div');
-    line.innerText = logText;
-    term.appendChild(line);
-    term.scrollTop = term.scrollHeight;
-  }
+  function updateConnectionState(connected, phone) {
+    const mainMenuBtn = document.getElementById('mainMenuBtn');
+    const sessionLabel = document.getElementById('sessionMenuLabel');
+    const pairMenuBtn = document.getElementById('dynamicPairMenuBtn');
 
-  function toggleNavMenu() {
-    document.getElementById('navMenu').classList.toggle('show');
-  }
+    if (connected && phone) {
+      myPhone = phone;
+      localStorage.setItem('userPhone', myPhone);
+      
+      if (isServerOnline) {
+        mainMenuBtn.classList.remove('hidden');
+      }
+      sessionLabel.innerText = `Sesi Bot XCY MD 1 (+${phone})`;
+      document.getElementById('connectedNum').innerText = `+${phone}`;
+      pairMenuBtn.innerText = "Buat Bot Baru ke-2";
 
-  function switchView(viewName) {
-    currentView = viewName;
-    document.getElementById('navMenu').classList.remove('show');
-    document.querySelectorAll('.content-box').forEach(el => el.classList.remove('active'));
-
-    if (viewName === 'session') {
-      document.getElementById('sessionSection').classList.add('active');
-      loadSessionFiles();
-    } else if (viewName === 'control') {
-      document.getElementById('controlSection').classList.add('active');
-    } else if (viewName === 'dashboard') {
-      document.getElementById('dashboardSection').classList.add('active');
-    } else if (viewName === 'pair') {
-      document.getElementById('pairSection').classList.add('active');
-    } else if (viewName === 'offline') {
-      document.getElementById('offlineSection').classList.add('active');
+      // OTOMATIS PINDAH KE DASHBOARD / BERANDA KETIKA BERHASIL TERHUBUNG
+      if (document.getElementById('pairSection').classList.contains('hidden') === false || document.getElementById('offlineSection').classList.contains('hidden') === false) {
+        switchView('dashboard');
+      }
+    } else {
+      mainMenuBtn.classList.add('hidden');
+      document.getElementById('navMenu').classList.remove('show');
+      pairMenuBtn.innerText = "Buat Bot Baru ke-1";
     }
   }
 
@@ -314,96 +684,42 @@
     if (!isServerOnline) return;
     const mode = document.getElementById('modeSelect').value;
     const phone = document.getElementById('phoneInput').value.replace(/[^0-9]/g, "");
-
-    if (!phone) return alert('Silakan masukkan nomor WhatsApp Anda terlebih dahulu!');
-
+    if (!phone) return alert('Masukkan nomor WhatsApp terlebih dahulu!');
     myPhone = phone;
     localStorage.setItem('userPhone', myPhone);
 
-    showLoading();
+    const btn = document.getElementById('startBtn');
+    btn.innerText = "Memuat Kode...";
+    btn.disabled = true;
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/connect`, {
+      await fetch(`${BACKEND_URL}/api/connect`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode, phone: myPhone })
       });
-      const result = await res.json();
-      if (result.error) {
-        hideLoading();
-        alert(result.error);
-      }
     } catch (err) {
-      hideLoading();
-      setServerOnlineState(false);
+      alert('Gagal terhubung ke server backend.');
+      btn.innerText = "Dapatkan Kode Pair";
+      btn.disabled = false;
     }
   }
 
   async function sendControl(action) {
     if (!myPhone || !isServerOnline) return;
     try {
-      appendTerminalLog(`[CLIENT] Mengirim perintah: ${action.toUpperCase()}...`);
-      const res = await fetch(`${BACKEND_URL}/api/control`, {
+      await fetch(`${BACKEND_URL}/api/control`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, phone: myPhone })
       });
-      const data = await res.json();
-      if (data.message) {
-        appendTerminalLog(`[SERVER] ${data.message}`);
-      }
       if (action === 'logout') {
         localStorage.removeItem('userPhone');
         myPhone = '';
-        switchView('pair');
+        updateConnectionState(false, null);
+        switchView('home');
       }
-    } catch (err) {
-      appendTerminalLog(`[ERROR] ${err.message}`);
-    }
-  }
-
-  function showLoading() {
-    document.getElementById('startBtn').classList.add('hidden');
-    document.getElementById('loadingBox').classList.remove('hidden');
-    document.getElementById('codeDisplay').classList.add('hidden');
-    document.getElementById('qrDisplay').classList.add('hidden');
-  }
-
-  function hideLoading() {
-    document.getElementById('loadingBox').classList.add('hidden');
-    document.getElementById('startBtn').classList.remove('hidden');
-  }
-
-  async function checkStatus() {
-    if (!isServerOnline) {
-      switchView('offline');
-      return;
-    }
-
-    if (!myPhone) {
-      switchView('pair');
-      document.getElementById('navTopLeft').style.display = 'none';
-      return;
-    }
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/status?phone=${myPhone}`);
-      const data = await res.json();
-
-      if (data.connected) {
-        document.getElementById('connectedNum').innerText = `+${myPhone}`;
-        document.getElementById('navTopLeft').style.display = 'block';
-        // PERPINDAHAN HALAMAN OTOMATIS KE DASHBOARD
-        switchView('dashboard');
-      } else {
-        document.getElementById('navTopLeft').style.display = 'none';
-        if (currentView !== 'pair') {
-          switchView('pair');
-        }
-      }
-    } catch (err) {
-      setServerOnlineState(false);
-    }
+    } catch (err) {}
   }
 
   async function loadSessionFiles() {
@@ -413,27 +729,34 @@
       const data = await res.json();
       const listEl = document.getElementById('fileList');
       listEl.innerHTML = '';
-
       if (!data.files || data.files.length === 0) {
         listEl.innerHTML = '<div class="file-item">Tidak ada file session.</div>';
         return;
       }
-
       data.files.forEach(file => {
         const item = document.createElement('div');
         item.className = 'file-item';
-        item.innerText = `📄 ${file}`;
+        item.innerText = `${file}`;
         listEl.appendChild(item);
       });
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (e) {}
   }
 
-  initWebSocket();
-  setInterval(() => {
-    if (!isServerOnline) initWebSocket();
-  }, 5000);
+  function appendTerminalLog(text) {
+    const term = document.getElementById('terminalOutput');
+    const line = document.createElement('div');
+    line.innerText = text;
+    term.appendChild(line);
+    term.scrollTop = term.scrollHeight;
+  }
+
+  window.onload = () => {
+    observeElements();
+    initWebSocket();
+    if (myPhone) {
+      updateConnectionState(true, myPhone);
+    }
+  };
 </script>
 
 </body>
