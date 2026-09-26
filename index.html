@@ -367,6 +367,29 @@
     .code-box { font-size: 1.8rem; font-weight: 800; text-align: center; letter-spacing: 4px; color: var(--accent-green); padding: 16px; background: var(--bg-color); border-radius: 16px; border: 1px solid var(--border-color); margin-top: 10px; }
     .terminal-box { background: #000; border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; font-family: monospace; font-size: 0.75rem; color: #4ade80; height: 180px; overflow-y: auto; text-align: left; }
     .file-item { padding: 10px 14px; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-secondary); }
+
+    .switch-btn {
+      width: 44px;
+      height: 24px;
+      background: #ccc;
+      border-radius: 20px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .switch-btn::before {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: white;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.3s;
+    }
+    .switch-btn.active { background: var(--accent-green); }
+    .switch-btn.active::before { transform: translateX(20px); }
   </style>
 </head>
 <body>
@@ -390,6 +413,8 @@
         <div class="menu-item highlight" id="sessionMenuLabel" onclick="switchView('dashboard')">Sesi Bot XCY MD 1</div>
         <div class="menu-item" onclick="switchView('control')">command sesi bot 1</div>
         <div class="menu-item" onclick="switchView('session')">session sesi bot 1</div>
+        <div class="menu-item" onclick="switchView('chatlog')">Riwayat chat bot</div>
+        <div class="menu-item" onclick="switchView('access')">akses bot</div>
         <div class="menu-item" id="dynamicPairMenuBtn" onclick="openPairView()" style="color: var(--accent-green); font-weight: 700;">Buat Bot Baru ke-1</div>
       </div>
     </div>
@@ -546,6 +571,52 @@
     </div>
   </div>
 
+  <!-- HALAMAN RIWAYAT CHAT BOT -->
+  <div id="chatlogSection" class="content-view hidden">
+    <div class="hero-card anim-on-scroll" style="text-align: left;">
+      <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: var(--accent-green);">Riwayat Chat Bot</h3>
+      <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px;">Pesan Masuk & Keluar Real-time:</p>
+      <div class="terminal-box" id="chatTerminalOutput" style="height: 250px;">
+        <div>[CHAT] Menunggu percakapan baru...</div>
+      </div>
+      <button class="primary-btn" onclick="switchView('home')" style="margin-top: 12px;">Kembali</button>
+    </div>
+  </div>
+
+  <!-- HALAMAN AKSES BOT -->
+  <div id="accessSection" class="content-view hidden">
+    <div class="hero-card anim-on-scroll" style="text-align: left;">
+      <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: var(--accent-green);">Akses Bot</h3>
+      <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 15px;">Atur di mana bot dapat digunakan (pilih salah satu On/Off):</p>
+      
+      <div class="group">
+        <div class="row">
+          <div>
+            <div style="font-weight: 700; font-size: 0.9rem;">publik</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">bot bisa di gunakan di mana saja</div>
+          </div>
+          <div class="switch-btn active" id="btnPublic" onclick="setAccessMode('public')"></div>
+        </div>
+        <div class="row">
+          <div>
+            <div style="font-weight: 700; font-size: 0.9rem;">Grub</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">bot hanya bisa di gunakan di grub</div>
+          </div>
+          <div class="switch-btn" id="btnGroup" onclick="setAccessMode('group')"></div>
+        </div>
+        <div class="row">
+          <div>
+            <div style="font-weight: 700; font-size: 0.9rem;">Sendiri</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">bot hanya bisa di gunakan di nomer</div>
+          </div>
+          <div class="switch-btn" id="btnPrivate" onclick="setAccessMode('private')"></div>
+        </div>
+      </div>
+
+      <button class="primary-btn" onclick="switchView('home')" style="margin-top: 12px;">Kembali</button>
+    </div>
+  </div>
+
   <!-- FOOTER -->
   <div class="footer anim-on-scroll">
     <div class="footer-links">
@@ -558,8 +629,8 @@
 </div>
 
 <script>
-  // Ganti dengan URL Cloudflare / Backend Anda
-  const BACKEND_URL = "https://registration-chancellor-location-increases.trycloudflare.com";
+  // GANTI DENGAN URL CLOUDFLARE TUNNEL ANDA
+  const BACKEND_URL = "https://colors-north-cook-arcade.trycloudflare.com";
 
   let ws = null;
   let myPhone = localStorage.getItem('userPhone') || '';
@@ -616,6 +687,10 @@
       loadSessionFiles();
     } else if (viewName === 'control') {
       document.getElementById('controlSection').classList.remove('hidden');
+    } else if (viewName === 'chatlog') {
+      document.getElementById('chatlogSection').classList.remove('hidden');
+    } else if (viewName === 'access') {
+      document.getElementById('accessSection').classList.remove('hidden');
     } else if (viewName === 'offline') {
       document.getElementById('offlineSection').classList.remove('hidden');
     }
@@ -661,6 +736,10 @@
           updateConnectionState(data.connected, data.phone);
         } else if (data.type === 'terminal_log') {
           appendTerminalLog(data.log);
+        } else if (data.type === 'chat_log') {
+          appendChatLog(data.log);
+        } else if (data.type === 'access_mode') {
+          updateAccessSwitches(data.mode);
         }
       };
 
@@ -686,7 +765,6 @@
       if (document.getElementById('offlineSection').classList.contains('hidden') === false && !myPhone) {
         switchView('home');
       }
-      // Memperbarui UI koneksi jika nomor ada di localStorage
       if (myPhone) {
         updateConnectionState(true, myPhone);
       }
@@ -709,7 +787,6 @@
       myPhone = targetPhone;
       localStorage.setItem('userPhone', myPhone);
       
-      // TAMPILKAN TOMBOL TITIK TIGA SAAT TERHUBUNG KONTINU
       mainMenuBtn.classList.remove('hidden');
 
       sessionLabel.innerText = `Sesi Bot XCY MD 1 (+${myPhone})`;
@@ -726,6 +803,27 @@
         pairMenuBtn.innerText = "Buat Bot Baru ke-1";
       }
     }
+  }
+
+  async function setAccessMode(mode) {
+    if (!isServerOnline) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/set-access`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode })
+      });
+      const data = await res.json();
+      if (data.success) {
+        updateAccessSwitches(data.mode);
+      }
+    } catch (e) {}
+  }
+
+  function updateAccessSwitches(modeObj) {
+    document.getElementById('btnPublic').className = modeObj.public ? 'switch-btn active' : 'switch-btn';
+    document.getElementById('btnGroup').className = modeObj.group ? 'switch-btn active' : 'switch-btn';
+    document.getElementById('btnPrivate').className = modeObj.private ? 'switch-btn active' : 'switch-btn';
   }
 
   async function startConnection() {
@@ -802,6 +900,14 @@
 
   function appendTerminalLog(text) {
     const term = document.getElementById('terminalOutput');
+    const line = document.createElement('div');
+    line.innerText = text;
+    term.appendChild(line);
+    term.scrollTop = term.scrollHeight;
+  }
+
+  function appendChatLog(text) {
+    const term = document.getElementById('chatTerminalOutput');
     const line = document.createElement('div');
     line.innerText = text;
     term.appendChild(line);
