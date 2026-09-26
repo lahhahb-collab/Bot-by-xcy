@@ -954,7 +954,7 @@
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // URL BACKEND CLOUDFLARE TUNNEL
-  const BACKEND_URL = "https://did-border-attached-ampland.trycloudflare.com";
+  const BACKEND_URL = "https://respondents-zealand-repairs-rapidly.trycloudflare.com";
 
   let ws = null;
   let myPhone = localStorage.getItem('userPhone') || '';
@@ -1220,14 +1220,18 @@
 
       ws.onopen = () => {
         setServerOnlineState(true);
+        // KIRIMKAN NOMOR USER KE WEBSOCKET SERVER UNTUK PENGENALAN IDENTITAS
+        if (myPhone) {
+          ws.send(JSON.stringify({ type: "init_user", phone: myPhone }));
+        }
       };
 
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        
-        if (data.phone && !myPhone) {
-          myPhone = data.phone;
-          localStorage.setItem('userPhone', myPhone);
+
+        // ABANGKAN JIKA DATA BUKAN UNTUK NOMOR KITA
+        if (data.phone && myPhone && data.phone !== myPhone) {
+          return;
         }
 
         if (data.type === 'pairing_code') {
@@ -1323,7 +1327,7 @@
         switchView('dashboard');
       }
     } else {
-      // RESET TOTAL JIKA LOGOUT ATAU TERPUTUS
+      // RESET TOTAL JIKA LOGOUT ATAU UNCONNECTED
       mainMenuBtn.classList.add('hidden');
       document.getElementById('navMenu').classList.remove('show');
       pairMenuBtn.innerText = "Buat Bot Baru ke-1";
@@ -1364,6 +1368,10 @@
     if (mode === 'pairing') {
       myPhone = phone;
       localStorage.setItem('userPhone', myPhone);
+      // Kirim identifikasi nomor ke WebSocket begitu tombol diklik
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "init_user", phone: myPhone }));
+      }
     }
 
     const btn = document.getElementById('startBtn');
@@ -1396,7 +1404,7 @@
         body: JSON.stringify({ action, phone: myPhone })
       });
 
-      // FITUR HAPUS TAUTAN & NUM DARI LOCAL STORAGE SAAT LOGOUT
+      // HAPUS SISA MEMORI BROWSER SAAT LOGOUT
       if (action === 'logout') {
         localStorage.removeItem('userPhone');
         localStorage.clear();
