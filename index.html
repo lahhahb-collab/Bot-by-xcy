@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>XCY - MD | WhatsApp Gateway</title>
+  <!-- SUPABASE JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --bg-color: #f4f4f4;
@@ -61,6 +63,23 @@
       z-index: 9999;
     }
 
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .admin-badge-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text-color);
+    }
+
     .logo {
       font-size: 1.5rem;
       font-weight: 800;
@@ -88,6 +107,21 @@
       white-space: nowrap;
     }
     .online-dot { width: 6px; height: 6px; background-color: var(--accent-green); border-radius: 50%; animation: pulse 1.5s infinite; }
+    
+    .loading-badge {
+      background: rgba(255, 159, 10, 0.15);
+      border: 1px solid #ff9f0a;
+      color: #ff9f0a;
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
     .theme-switch {
@@ -362,7 +396,7 @@
     .group { background: var(--card-bg); border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 15px; width: 100%; }
     .row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border-color); }
     .row:last-child { border-bottom: none; }
-    select, input[type="text"] { background: transparent; border: none; color: var(--accent-green); font-size: 0.95rem; text-align: right; outline: none; width: 60%; font-weight: 600; }
+    select, input[type="text"], input[type="password"] { background: transparent; border: none; color: var(--accent-green); font-size: 0.95rem; outline: none; font-weight: 600; }
 
     .code-box { font-size: 1.8rem; font-weight: 800; text-align: center; letter-spacing: 4px; color: var(--accent-green); padding: 16px; background: var(--bg-color); border-radius: 16px; border: 1px solid var(--border-color); margin-top: 10px; }
     .terminal-box { background: #000; border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; font-family: monospace; font-size: 0.75rem; color: #4ade80; height: 180px; overflow-y: auto; text-align: left; }
@@ -390,6 +424,201 @@
     }
     .switch-btn.active { background: var(--accent-green); }
     .switch-btn.active::before { transform: translateX(20px); }
+
+    /* ADMIN PANEL STYLES */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .stat-box {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-val { font-size: 1.4rem; font-weight: 800; color: var(--accent-green); }
+    .stat-lbl { font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; text-transform: uppercase; }
+
+    .contact-item {
+      padding: 12px;
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .contact-item:hover { background: rgba(0, 128, 55, 0.05); }
+
+    /* TAMPILAN BERANDA CHAT WHATSAPP */
+    .wa-chat-container {
+      background: #111b21;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      margin-bottom: 15px;
+    }
+    .wa-chat-header {
+      background: #202c33;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #e9edef;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    .wa-chat-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      gap: 12px;
+    }
+    .wa-chat-item:hover { background: #182229; }
+    .wa-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #6b7c85;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #ffffff;
+      font-size: 1.1rem;
+    }
+    .wa-chat-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      overflow: hidden;
+    }
+    .wa-chat-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .wa-chat-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #e9edef;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .wa-chat-time {
+      font-size: 0.7rem;
+      color: #8696a0;
+    }
+    .wa-chat-msg {
+      font-size: 0.8rem;
+      color: #8696a0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* TAMPILAN CHAT ROOM DETAIL */
+    .wa-room-container {
+      background: #0b141a;
+      background-image: radial-gradient(circle, #121c22 1px, transparent 1px);
+      background-size: 16px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 520px;
+    }
+    .wa-room-header {
+      background: #202c33;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #e9edef;
+    }
+    .wa-room-body {
+      flex: 1;
+      padding: 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .wa-enc-notice {
+      background: #182229;
+      border-radius: 10px;
+      padding: 10px 12px;
+      text-align: center;
+      font-size: 0.72rem;
+      color: #ffd279;
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+    .wa-bubble {
+      max-width: 78%;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      line-height: 1.35;
+      position: relative;
+      word-break: break-word;
+    }
+    .wa-bubble.me {
+      background: #005c4b;
+      color: #e9edef;
+      align-self: flex-end;
+      border-top-right-radius: 2px;
+    }
+    .wa-bubble.them {
+      background: #202c33;
+      color: #e9edef;
+      align-self: flex-start;
+      border-top-left-radius: 2px;
+    }
+    .wa-bubble-time {
+      font-size: 0.62rem;
+      color: rgba(241, 241, 241, 0.6);
+      float: right;
+      margin-left: 8px;
+      margin-top: 4px;
+    }
+    .wa-room-footer {
+      background: #202c33;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .wa-input-box {
+      flex: 1;
+      background: #2a3942;
+      border-radius: 24px;
+      padding: 10px 16px;
+      color: #e9edef;
+      font-size: 0.9rem;
+      border: none;
+      outline: none;
+    }
+    .wa-send-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #00a884;
+      border: none;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
   </style>
 </head>
 <body>
@@ -398,11 +627,19 @@
   
   <!-- NAVBAR -->
   <div class="navbar anim-on-scroll">
-    <div class="logo">XCY - MD</div>
+    <div class="nav-left">
+      <button class="admin-badge-btn" onclick="openAdminModal()">⚙️ Admin</button>
+      <div class="logo">XCY - MD</div>
+    </div>
     <div class="nav-right">
+      <!-- INDIKATOR REAL-TIME STATUS -->
+      <div class="loading-badge" id="loadingBadge">
+        <div class="spinner" style="width:10px; height:10px; border-width:2px; border-top-color:#ff9f0a;"></div> Memuat...
+      </div>
       <div class="online-badge hidden" id="onlineBadge">
         <div class="online-dot"></div> ONLINE
       </div>
+      
       <div class="theme-switch" onclick="toggleTheme()">
         <span id="themeText">Dark</span>
         <div class="toggle-dot"></div>
@@ -502,7 +739,7 @@
         </div>
         <div class="row">
           <label style="font-size:0.9rem;">Nomor WA</label>
-          <input type="text" id="phoneInput" placeholder="628xxx">
+          <input type="text" id="phoneInput" placeholder="628xxx" style="text-align: right;">
         </div>
       </div>
 
@@ -617,6 +854,88 @@
     </div>
   </div>
 
+  <!-- MODAL / HALAMAN ADMIN PANEL -->
+  <div id="adminAuthSection" class="content-view hidden">
+    <div class="hero-card anim-on-scroll">
+      <h3 style="font-size: 1.2rem; margin-bottom: 12px;">Masukan Password Admin Panel</h3>
+      <div class="group">
+        <div class="row">
+          <label>Password</label>
+          <input type="password" id="adminPassInput" placeholder="Sandi Admin..." style="width: 70%; text-align: left;">
+        </div>
+      </div>
+      <button class="primary-btn" id="adminVerifyBtn" onclick="verifyAdminPassword()">Buka Admin Panel</button>
+      <button class="primary-btn" style="background: transparent; color: var(--text-color); border: 1px solid var(--border-color); margin-top: 10px;" onclick="switchView('home')">Batal</button>
+    </div>
+  </div>
+
+  <div id="adminDashboardSection" class="content-view hidden">
+    <div class="hero-card anim-on-scroll" style="text-align: left;">
+      <h3 style="font-size: 1.2rem; margin-bottom: 12px; color: var(--accent-green);">Admin Dashboard</h3>
+      
+      <!-- GRID STATUS RINGKASAN BOT -->
+      <div class="stat-grid">
+        <div class="stat-box">
+          <div class="stat-val" id="statActive">0</div>
+          <div class="stat-lbl">Aktif</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statOffline" style="color: #ff9f0a;">0</div>
+          <div class="stat-lbl">Offline</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statStop" style="color: #ff453a;">0</div>
+          <div class="stat-lbl">Stop</div>
+        </div>
+      </div>
+
+      <p style="font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;">Daftar Nomor Terhubung (Klik untuk buka Chat WhatsApp):</p>
+      <div class="group" style="max-height: 180px; overflow-y: auto;" id="adminNumberList">
+        <div style="padding: 12px; font-size: 0.85rem; color: var(--text-secondary);">Memuat nomor...</div>
+      </div>
+
+      <button class="primary-btn" onclick="switchView('home')" style="margin-top: 15px; background: transparent; border: 1px solid var(--border-color); color: var(--text-color);">Kembali</button>
+    </div>
+  </div>
+
+  <!-- HALAMAN BERANDA DAFTAR CHAT WA -->
+  <div id="waChatsViewSection" class="content-view hidden">
+    <div class="wa-chat-container anim-on-scroll">
+      <div class="wa-chat-header">
+        <div>WhatsApp</div>
+        <button style="background: transparent; border: none; color: #8696a0; font-size: 0.8rem; cursor: pointer;" onclick="switchView('adminDashboard')">← Kembali</button>
+      </div>
+      <div id="waChatListContainer" style="max-height: 380px; overflow-y: auto;">
+        <div style="padding: 20px; text-align: center; color: #8696a0; font-size: 0.85rem;">Memuat obrolan WhatsApp...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HALAMAN ROOM CHAT INTERAKTIF -->
+  <div id="waRoomDetailSection" class="content-view hidden">
+    <div class="wa-room-container anim-on-scroll">
+      <div class="wa-room-header">
+        <button style="background: transparent; border: none; color: #aebac1; font-size: 1.1rem; cursor: pointer;" onclick="switchView('waChats')">←</button>
+        <div class="wa-avatar" id="roomAvatar" style="width:36px; height:36px; font-size:0.9rem;">P</div>
+        <div style="flex:1; overflow:hidden;">
+          <div id="roomContactName" style="font-weight:700; font-size:0.95rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">-ryz!!</div>
+          <div style="font-size:0.68rem; color:#8696a0;">online</div>
+        </div>
+      </div>
+
+      <div class="wa-room-body" id="roomMessageBody">
+        <div class="wa-enc-notice">
+          🔒 Pesan dan telepon terenkripsi secara end-to-end. Hanya orang di obrolan ini yang bisa membaca, mendengarkan, atau membagikannya. <u>Pelajari selengkapnya</u>.
+        </div>
+      </div>
+
+      <div class="wa-room-footer">
+        <input type="text" id="roomInputText" class="wa-input-box" placeholder="Ketik pesan">
+        <button class="wa-send-btn" onclick="sendRoomMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+
   <!-- FOOTER -->
   <div class="footer anim-on-scroll">
     <div class="footer-links">
@@ -629,11 +948,18 @@
 </div>
 
 <script>
-  // GANTI DENGAN URL CLOUDFLARE TUNNEL ANDA
-  const BACKEND_URL = "https://colors-north-cook-arcade.trycloudflare.com";
+  // CONFIG SUPABASE
+  const SUPABASE_URL = "https://mqvpjvgulfotlbtjgojw.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_QG5aNX5L9w-HINgOow-5Ug_rcNxm8TW";
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // URL BACKEND CLOUDFLARE TUNNEL
+  const BACKEND_URL = "https://did-border-attached-ampland.trycloudflare.com";
 
   let ws = null;
   let myPhone = localStorage.getItem('userPhone') || '';
+  let selectedBotPhone = '';
+  let activeChatJid = '';
   let isServerOnline = false;
 
   const observerOptions = { threshold: 0.1 };
@@ -672,6 +998,180 @@
     switchView('pair');
   }
 
+  function openAdminModal() {
+    document.getElementById('adminPassInput').value = '';
+    switchView('adminAuth');
+  }
+
+  async function verifyAdminPassword() {
+    const enteredPass = document.getElementById('adminPassInput').value.trim();
+    if (!enteredPass) return alert("Masukkan password admin!");
+
+    const btn = document.getElementById('adminVerifyBtn');
+    btn.innerHTML = `<div class="spinner"></div> Memverifikasi...`;
+    btn.disabled = true;
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('admin_config')
+        .select('admin_password');
+
+      let isValid = false;
+
+      if (data && data.length > 0) {
+        isValid = data.some(row => row.admin_password === enteredPass);
+      }
+
+      if (!isValid) {
+        alert("Password Admin Salah!");
+      } else {
+        alert("Berhasil Masuk Admin Panel!");
+        loadAdminData();
+        switchView('adminDashboard');
+      }
+    } catch (e) {
+      alert("Error memverifikasi Supabase: " + e.message);
+    } finally {
+      btn.innerHTML = "Buka Admin Panel";
+      btn.disabled = false;
+    }
+  }
+
+  async function loadAdminData() {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/stats`);
+      const data = await res.json();
+      
+      document.getElementById('statActive').innerText = data.summary.active || 0;
+      document.getElementById('statOffline').innerText = data.summary.offline || 0;
+      document.getElementById('statStop').innerText = data.summary.stopped || 0;
+
+      const numList = document.getElementById('adminNumberList');
+      numList.innerHTML = '';
+
+      if (!data.numbers || data.numbers.length === 0) {
+        numList.innerHTML = '<div style="padding:12px; font-size:0.8rem;">Belum ada nomor terdaftar.</div>';
+        return;
+      }
+
+      data.numbers.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'contact-item';
+        div.innerHTML = `
+          <div>
+            <div style="font-weight:700; font-size:0.85rem;">+${item.phone}</div>
+            <div style="font-size:0.7rem; color:var(--text-secondary);">Status: ${item.status}</div>
+          </div>
+          <button style="padding:4px 10px; border-radius:8px; border:none; background:var(--accent-green); color:#fff; font-size:0.75rem; font-weight:700; cursor:pointer;" onclick="openWaChatsView('${item.phone}')">Lihat Chat WA</button>
+        `;
+        numList.appendChild(div);
+      });
+    } catch (e) {}
+  }
+
+  async function openWaChatsView(phone) {
+    selectedBotPhone = phone;
+    switchView('waChats');
+    loadWaChats(phone);
+  }
+
+  async function loadWaChats(phone) {
+    const container = document.getElementById('waChatListContainer');
+    container.innerHTML = '<div style="padding: 20px; text-align: center; color: #8696a0; font-size: 0.85rem;">Memuat obrolan WhatsApp...</div>';
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/chats?phone=${phone}`);
+      const data = await res.json();
+
+      if (!data.chats || data.chats.length === 0) {
+        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #8696a0; font-size: 0.85rem;">Belum ada pesan masuk/keluar di nomor ini.</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      data.chats.forEach(chat => {
+        const initial = (chat.name || 'P').charAt(0).toUpperCase();
+        const item = document.createElement('div');
+        item.className = 'wa-chat-item';
+        item.onclick = () => openChatRoom(chat.jid, chat.name || chat.jid);
+        item.innerHTML = `
+          <div class="wa-avatar">${initial}</div>
+          <div class="wa-chat-info">
+            <div class="wa-chat-top">
+              <div class="wa-chat-name">${chat.name || chat.jid}</div>
+              <div class="wa-chat-time">${chat.time || ''}</div>
+            </div>
+            <div class="wa-chat-msg">${chat.lastMessage || ''}</div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    } catch (e) {
+      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #ff453a; font-size: 0.85rem;">Gagal memuat obrolan dari server.</div>';
+    }
+  }
+
+  async function openChatRoom(jid, name) {
+    activeChatJid = jid;
+    document.getElementById('roomContactName').innerText = name;
+    document.getElementById('roomAvatar').innerText = (name || 'P').charAt(0).toUpperCase();
+    switchView('waRoomDetail');
+    loadRoomMessages();
+  }
+
+  async function loadRoomMessages() {
+    const body = document.getElementById('roomMessageBody');
+    body.innerHTML = `
+      <div class="wa-enc-notice">
+        🔒 Pesan dan telepon terenkripsi secara end-to-end. Hanya orang di obrolan ini yang bisa membaca, mendengarkan, atau membagikannya. <u>Pelajari selengkapnya</u>.
+      </div>
+    `;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/room-messages?phone=${selectedBotPhone || myPhone}&jid=${activeChatJid}`);
+      const data = await res.json();
+
+      if (data.messages) {
+        data.messages.forEach(m => {
+          appendBubbleMessage(m.text, m.fromMe, m.time);
+        });
+      }
+    } catch (e) {}
+  }
+
+  function appendBubbleMessage(text, fromMe, time) {
+    const body = document.getElementById('roomMessageBody');
+    const div = document.createElement('div');
+    div.className = `wa-bubble ${fromMe ? 'me' : 'them'}`;
+    div.innerHTML = `${text} <span class="wa-bubble-time">${time || ''} ${fromMe ? '✓✓' : ''}</span>`;
+    body.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  async function sendRoomMessage() {
+    const input = document.getElementById('roomInputText');
+    const msg = input.value.trim();
+    if (!msg || !activeChatJid) return;
+
+    input.value = '';
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    appendBubbleMessage(msg, true, timeStr);
+
+    try {
+      await fetch(`${BACKEND_URL}/api/admin/send-message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          senderPhone: selectedBotPhone || myPhone,
+          recipientJid: activeChatJid,
+          message: msg
+        })
+      });
+    } catch (e) {
+      alert("Gagal mengirim pesan.");
+    }
+  }
+
   function switchView(viewName) {
     document.getElementById('navMenu').classList.remove('show');
     document.querySelectorAll('.content-view').forEach(el => el.classList.add('hidden'));
@@ -691,6 +1191,14 @@
       document.getElementById('chatlogSection').classList.remove('hidden');
     } else if (viewName === 'access') {
       document.getElementById('accessSection').classList.remove('hidden');
+    } else if (viewName === 'adminAuth') {
+      document.getElementById('adminAuthSection').classList.remove('hidden');
+    } else if (viewName === 'adminDashboard') {
+      document.getElementById('adminDashboardSection').classList.remove('hidden');
+    } else if (viewName === 'waChats') {
+      document.getElementById('waChatsViewSection').classList.remove('hidden');
+    } else if (viewName === 'waRoomDetail') {
+      document.getElementById('waRoomDetailSection').classList.remove('hidden');
     } else if (viewName === 'offline') {
       document.getElementById('offlineSection').classList.remove('hidden');
     }
@@ -699,6 +1207,8 @@
   }
 
   function initWebSocket() {
+    setServerLoadingState(true);
+
     if (!BACKEND_URL || BACKEND_URL.includes("PASTE-URL")) {
       setServerOnlineState(false);
       return;
@@ -740,6 +1250,10 @@
           appendChatLog(data.log);
         } else if (data.type === 'access_mode') {
           updateAccessSwitches(data.mode);
+        } else if (data.type === 'new_room_message') {
+          if (data.from === activeChatJid) {
+            appendBubbleMessage(data.msg.text, data.msg.fromMe, data.msg.time);
+          }
         }
       };
 
@@ -756,12 +1270,24 @@
     }
   }
 
+  function setServerLoadingState(loading) {
+    const loadBadge = document.getElementById('loadingBadge');
+    const onlineBadge = document.getElementById('onlineBadge');
+    if (loading) {
+      loadBadge.classList.remove('hidden');
+      onlineBadge.classList.add('hidden');
+    }
+  }
+
   function setServerOnlineState(online) {
     isServerOnline = online;
-    const badge = document.getElementById('onlineBadge');
+    const loadBadge = document.getElementById('loadingBadge');
+    const onlineBadge = document.getElementById('onlineBadge');
+
+    loadBadge.classList.add('hidden');
 
     if (online) {
-      badge.classList.remove('hidden');
+      onlineBadge.classList.remove('hidden');
       if (document.getElementById('offlineSection').classList.contains('hidden') === false && !myPhone) {
         switchView('home');
       }
@@ -769,7 +1295,7 @@
         updateConnectionState(true, myPhone);
       }
     } else {
-      badge.classList.add('hidden');
+      onlineBadge.classList.add('hidden');
       document.getElementById('mainMenuBtn').classList.add('hidden');
       document.getElementById('navMenu').classList.remove('show');
       switchView('offline');
@@ -797,11 +1323,11 @@
         switchView('dashboard');
       }
     } else {
-      if (!phone && !myPhone) {
-        mainMenuBtn.classList.add('hidden');
-        document.getElementById('navMenu').classList.remove('show');
-        pairMenuBtn.innerText = "Buat Bot Baru ke-1";
-      }
+      // RESET TOTAL JIKA LOGOUT ATAU TERPUTUS
+      mainMenuBtn.classList.add('hidden');
+      document.getElementById('navMenu').classList.remove('show');
+      pairMenuBtn.innerText = "Buat Bot Baru ke-1";
+      document.getElementById('connectedNum').innerText = "-";
     }
   }
 
@@ -869,13 +1395,22 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, phone: myPhone })
       });
+
+      // FITUR HAPUS TAUTAN & NUM DARI LOCAL STORAGE SAAT LOGOUT
       if (action === 'logout') {
         localStorage.removeItem('userPhone');
+        localStorage.clear();
         myPhone = '';
+        selectedBotPhone = '';
+        activeChatJid = '';
+
         updateConnectionState(false, null);
+        alert("Sesi nomor berhasil di-logout dan dihapus dari penyimpanan lokal!");
         switchView('home');
       }
-    } catch (err) {}
+    } catch (err) {
+      alert("Gagal melakukan perintah control.");
+    }
   }
 
   async function loadSessionFiles() {
